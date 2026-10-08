@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"xchango_mid/routers"
+	_ "xchango_mid/routers"
 	"xchango_mid/services"
 
 	beego "github.com/beego/beego/v2/server/web"
