@@ -16,4 +16,8 @@ type Trueque struct {
 	CalificacionPropietario *int   `json:"calificacionPropietario"`
 }
 
+type SolicitudTrueque struct {
+	PublicacionId string `json:"publicacionId"`
+	Ofrece        string `json:"ofrece"`
+}
 
