@@ -25,3 +25,13 @@ type Calificacion struct {
 	Nota int `json:"nota"`
 }
 
+type Notificacion struct {
+	Id  string  `json:"id,omitempty"`
+	UsuarioId    string  `json:"usuarioId"`
+	Tipo string  `json:"tipo"`
+	Titulo  string  `json:"titulo"`
+	Mensaje  string  `json:"mensaje"`
+	ReferenciaId *string `json:"referenciaId"`
+	Leida  bool    `json:"leida"`
+	Fecha  string  `json:"fecha"`
+}
