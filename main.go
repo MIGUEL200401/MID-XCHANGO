@@ -12,7 +12,7 @@ import (
 func main() {
 	// si los PIN son por Gmail, se autoriza al inicio y no en medio de una peticion
 	if beego.AppConfig.DefaultBool("enviar_correo", false) {
-		_, err := services.NewGmailService()
+		_, err := services.NuevoServicioGmail()
 		if err != nil {
 			fmt.Println("Gmail no está listo:", err)
 			return
