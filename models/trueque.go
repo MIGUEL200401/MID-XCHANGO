@@ -21,3 +21,7 @@ type SolicitudTrueque struct {
 	Ofrece        string `json:"ofrece"`
 }
 
+type Calificacion struct {
+	Nota int `json:"nota"`
+}
+
