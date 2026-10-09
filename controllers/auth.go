@@ -3,6 +3,7 @@ package controllers
 import (
 	"crypto/rand"
 	"fmt"
+	"html"
 	"math/big"
 	"net/mail"
 	"os"
@@ -68,9 +69,11 @@ func (c *AuthController) EnviarPin() {
 	}
 
 	requiereRegistro := true
+	nombre := ""
 	for _, u := range usuarios {
 		if strings.ToLower(u.Email) == correo {
 			requiereRegistro = false
+			nombre = u.Nombre
 			if u.Estado == "suspendido" {
 				responderError(&c.Controller, 403, "Tu cuenta está suspendida.")
 				return
@@ -95,7 +98,7 @@ func (c *AuthController) EnviarPin() {
 	}
 	candadoPines.Unlock()
 
-	err = mandarPin(correo, pin)
+	err = mandarPin(correo, pin, nombre)
 	if err != nil {
 		candadoPines.Lock()
 		delete(pines, correo)
@@ -120,7 +123,7 @@ func generarPin() (string, error) {
 	return fmt.Sprintf("%04d", numero.Int64()), nil
 }
 
-func mandarPin(correo string, pin string) error {
+func mandarPin(correo string, pin string, nombre string) error {
 	if !beego.AppConfig.DefaultBool("enviar_correo", false) {
 		fmt.Println("PIN para", correo, "->", pin)
 		return nil
@@ -133,14 +136,21 @@ func mandarPin(correo string, pin string) error {
 
 	plantilla, err := os.ReadFile("templates/correo_pin.html")
 	if err != nil {
-    	return err
+		return err
+	}
+
+	// si no esta el logo, el correo se manda igual pero sin logo
+	logo, _ := os.ReadFile("templates/logo.png")
+
+	// si el usuario ya tiene cuenta se saluda por su primer nombre
+	saludo := "Hola,"
+	if strings.TrimSpace(nombre) != "" {
+		saludo = "Hola, " + html.EscapeString(strings.Fields(nombre)[0]) + ","
 	}
 
 	cuerpo := strings.ReplaceAll(string(plantilla), "{{PIN}}", pin)
+	cuerpo = strings.ReplaceAll(cuerpo, "{{SALUDO}}", saludo)
 
-	_, err = servicioGmail.EnviarCorreo(correo, 
-		"Tu PIN de XchanGo", 
-		cuerpo,
-	)
-		return err
-	}
+	_, err = servicioGmail.EnviarCorreo(correo, "Tu PIN de XchanGo", cuerpo, logo)
+	return err
+}
