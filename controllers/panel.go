@@ -4,8 +4,16 @@ import (
 	"math"
 	"time"
 
+	beego "github.com/beego/beego/v2/server/web"
+
 	"xchango_mid/models"
+	"xchango_mid/services"
 )
+
+// Administra las metricas del historial, alertas y metricas del panel
+type PanelController struct {
+	beego.Controller
+}
 
 func comparar(actual int, anterior int) models.Comparativa {
 	porcentaje := 0.0
