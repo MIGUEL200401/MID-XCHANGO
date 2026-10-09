@@ -139,10 +139,10 @@ func mandarPin(correo string, pin string, nombre string) error {
 		return err
 	}
 
-	// si no esta el logo, el correo se manda igual pero sin logo
+
 	logo, _ := os.ReadFile("templates/logo.png")
 
-	// si el usuario ya tiene cuenta se saluda por su primer nombre
+	// si el usuario ya tiene cuenta se saluda por su nombre
 	saludo := "Hola,"
 	if strings.TrimSpace(nombre) != "" {
 		saludo = "Hola, " + html.EscapeString(strings.Fields(nombre)[0]) + ","
