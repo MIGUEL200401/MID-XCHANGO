@@ -22,3 +22,7 @@ Thumbs.db
 # Temp
 *.tmp
 *.bak
+
+# Gmail 
+credentials/
+token/
