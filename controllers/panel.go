@@ -106,3 +106,48 @@ func (c *PanelController) CrearAdmin() {
 	creado.Password = ""
 
 	responder(&c.Controller, 201, creado)
+
+// aqui se cambia si un admin queda activo o inactivo
+func (c *PanelController) EstadoAdmin() {
+	claims, ok := exigirAdmin(&c.Controller, true)
+	if !ok {
+		return
+	}
+
+	var cambio models.CambioEstado
+
+	if !leerCuerpo(&c.Controller, &cambio) {
+		return
+	}
+
+	if cambio.Estado != "activo" && cambio.Estado != "inactivo" {
+		responderError(&c.Controller, 400, "El estado debe ser activo o inactivo.")
+		return
+	}
+
+	id := c.Ctx.Input.Param(":id")
+
+	if id == claims.ID {
+		responderError(&c.Controller, 400, "No puedes cambiar el estado de tu propia cuenta.")
+		return
+	}
+
+	crud := services.NewCrudService()
+
+	var admin models.AdminUsuario
+	err := crud.Obtener("admins", id, &admin)
+	if err != nil {
+		errorCrud(&c.Controller, err)
+		return
+	}
+
+	admin.Estado = cambio.Estado
+
+	err = crud.Actualizar("admins", id, admin, nil)
+	if err != nil {
+		errorCrud(&c.Controller, err)
+		return
+	}
+
+	responderVacio(&c.Controller)
+}
