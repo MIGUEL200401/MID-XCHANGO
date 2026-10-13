@@ -143,7 +143,7 @@ func mandarPin(correo string, pin string, nombre string) error {
 	logo, _ := os.ReadFile("templates/logo.png")
 
 	// si el usuario ya tiene cuenta se saluda por su nombre
-	saludo := "Hola,"
+	saludo := "Hola"
 	if strings.TrimSpace(nombre) != "" {
 		saludo = "Hola, " + html.EscapeString(strings.Fields(nombre)[0]) + ","
 	}
