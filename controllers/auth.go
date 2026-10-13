@@ -145,7 +145,7 @@ func mandarPin(correo string, pin string, nombre string) error {
 	// si el usuario ya tiene cuenta se saluda por su nombre
 	saludo := "Hola"
 	if strings.TrimSpace(nombre) != "" {
-		saludo = "Hola, " + html.EscapeString(strings.Fields(nombre)[0]) + ","
+		saludo = "Hola, " + html.EscapeString(strings.Fields(nombre)[0]) 
 	}
 
 	cuerpo := strings.ReplaceAll(string(plantilla), "{{PIN}}", pin)
