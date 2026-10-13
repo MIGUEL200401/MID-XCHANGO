@@ -16,8 +16,8 @@ type TruequesController struct {
 
 // GET /api/v1/trueques
 func (c *TruequesController) Listar() {
-	claims, ok := exigirUsuario(&c.Controller)
-	if !ok {
+	sesion, valido := exigirUsuario(&c.Controller)
+	if !valido {
 		return
 	}
 
@@ -30,7 +30,7 @@ func (c *TruequesController) Listar() {
 
 	mios := []models.Trueque{}
 	for _, t := range todos {
-		if t.SolicitanteId == claims.ID || t.PropietarioId == claims.ID {
+		if t.SolicitanteId == sesion.ID || t.PropietarioId == sesion.ID {
 			mios = append(mios, t)
 		}
 	}
@@ -40,8 +40,8 @@ func (c *TruequesController) Listar() {
 
 // POST /api/v1/trueques
 func (c *TruequesController) Solicitar() {
-	claims, ok := exigirUsuario(&c.Controller)
-	if !ok {
+	sesion, valido := exigirUsuario(&c.Controller)
+	if !valido {
 		return
 	}
 
@@ -51,7 +51,7 @@ func (c *TruequesController) Solicitar() {
 		return
 	}
 
-	if !usuarioPuedeActuar(&c.Controller, claims.ID) {
+	if !usuarioPuedeActuar(&c.Controller, sesion.ID) {
 		return
 	}
 
@@ -64,7 +64,7 @@ func (c *TruequesController) Solicitar() {
 		return
 	}
 
-	if publicacion.UsuarioId == claims.ID {
+	if publicacion.UsuarioId == sesion.ID {
 		responderError(&c.Controller, 400, "Esta publicación es tuya.")
 		return
 	}
@@ -83,7 +83,7 @@ func (c *TruequesController) Solicitar() {
 
 	for _, t := range existentes {
 		abierto := t.Estado == "pendiente" || t.Estado == "aceptado"
-		if t.PublicacionId == publicacion.Id && t.SolicitanteId == claims.ID && abierto {
+		if t.PublicacionId == publicacion.Id && t.SolicitanteId == sesion.ID && abierto {
 			responderError(&c.Controller, 409, "Ya tienes una propuesta abierta para esta publicación.")
 			return
 		}
@@ -95,7 +95,7 @@ func (c *TruequesController) Solicitar() {
 	}
 
 	nuevo := models.Trueque{
-		SolicitanteId:  claims.ID,
+		SolicitanteId:  sesion.ID,
 		PropietarioId:  publicacion.UsuarioId,
 		PublicacionId:  publicacion.Id,
 		Ofrece:         ofrece,
@@ -112,7 +112,7 @@ func (c *TruequesController) Solicitar() {
 	}
 
 	var solicitante models.Usuario
-	err = crud.Obtener("usuarios", claims.ID, &solicitante)
+	err = crud.Obtener("usuarios", sesion.ID, &solicitante)
 	if err != nil {
 		errorCrud(&c.Controller, err)
 		return
@@ -135,19 +135,19 @@ func (c *TruequesController) Solicitar() {
 
 // PATCH /api/v1/trueques/:id/aceptar
 func (c *TruequesController) Aceptar() {
-	claims, ok := exigirUsuario(&c.Controller)
-	if !ok {
+	sesion, valido := exigirUsuario(&c.Controller)
+	if !valido {
 		return
 	}
 
 	crud := services.NewCrudService()
 
-	trueque, ok := buscarTrueque(&c.Controller, c.Ctx.Input.Param(":id"))
-	if !ok {
+	trueque, valido := buscarTrueque(&c.Controller, c.Ctx.Input.Param(":id"))
+	if !valido {
 		return
 	}
 
-	if trueque.PropietarioId != claims.ID {
+	if trueque.PropietarioId != sesion.ID {
 		responderError(&c.Controller, 403, "Solo el dueño de la publicación puede aceptar.")
 		return
 	}
@@ -182,19 +182,19 @@ func (c *TruequesController) Aceptar() {
 
 // PATCH /api/v1/trueques/:id/rechazar
 func (c *TruequesController) Rechazar() {
-	claims, ok := exigirUsuario(&c.Controller)
-	if !ok {
+	sesion, valido := exigirUsuario(&c.Controller)
+	if !valido {
 		return
 	}
 
 	crud := services.NewCrudService()
 
-	trueque, ok := buscarTrueque(&c.Controller, c.Ctx.Input.Param(":id"))
-	if !ok {
+	trueque, valido := buscarTrueque(&c.Controller, c.Ctx.Input.Param(":id"))
+	if !valido {
 		return
 	}
 
-	if trueque.PropietarioId != claims.ID {
+	if trueque.PropietarioId != sesion.ID {
 		responderError(&c.Controller, 403, "Solo el dueño de la publicación puede rechazar.")
 		return
 	}
@@ -237,15 +237,15 @@ func (c *TruequesController) Rechazar() {
 
 // PATCH /api/v1/trueques/:id/confirmar
 func (c *TruequesController) Confirmar() {
-	claims, ok := exigirUsuario(&c.Controller)
-	if !ok {
+	sesion, valido := exigirUsuario(&c.Controller)
+	if !valido {
 		return
 	}
 
 	crud := services.NewCrudService()
 
-	trueque, ok := buscarTrueque(&c.Controller, c.Ctx.Input.Param(":id"))
-	if !ok {
+	trueque, valido := buscarTrueque(&c.Controller, c.Ctx.Input.Param(":id"))
+	if !valido {
 		return
 	}
 
@@ -254,9 +254,9 @@ func (c *TruequesController) Confirmar() {
 		return
 	}
 
-	if trueque.SolicitanteId == claims.ID {
+	if trueque.SolicitanteId == sesion.ID {
 		trueque.ConfirmadoSolicitante = true
-	} else if trueque.PropietarioId == claims.ID {
+	} else if trueque.PropietarioId == sesion.ID {
 		trueque.ConfirmadoPropietario = true
 	} else {
 		responderError(&c.Controller, 403, "Este trueque no es tuyo.")
@@ -292,8 +292,8 @@ func (c *TruequesController) Confirmar() {
 
 // PATCH /api/v1/trueques/:id/calificar
 func (c *TruequesController) Calificar() {
-	claims, ok := exigirUsuario(&c.Controller)
-	if !ok {
+	sesion, valido := exigirUsuario(&c.Controller)
+	if !valido {
 		return
 	}
 
@@ -308,8 +308,8 @@ func (c *TruequesController) Calificar() {
 		return
 	}
 
-	trueque, ok := buscarTrueque(&c.Controller, c.Ctx.Input.Param(":id"))
-	if !ok {
+	trueque, valido := buscarTrueque(&c.Controller, c.Ctx.Input.Param(":id"))
+	if !valido {
 		return
 	}
 
@@ -320,9 +320,9 @@ func (c *TruequesController) Calificar() {
 
 	nota := calificacion.Nota
 
-	if trueque.SolicitanteId == claims.ID {
+	if trueque.SolicitanteId == sesion.ID {
 		trueque.CalificacionSolicitante = &nota
-	} else if trueque.PropietarioId == claims.ID {
+	} else if trueque.PropietarioId == sesion.ID {
 		trueque.CalificacionPropietario = &nota
 	} else {
 		responderError(&c.Controller, 403, "Este trueque no es tuyo.")
@@ -340,8 +340,8 @@ func (c *TruequesController) Calificar() {
 
 // GET /api/v1/notificaciones
 func (c *TruequesController) Notificaciones() {
-	claims, ok := exigirUsuario(&c.Controller)
-	if !ok {
+	sesion, valido := exigirUsuario(&c.Controller)
+	if !valido {
 		return
 	}
 
@@ -354,7 +354,7 @@ func (c *TruequesController) Notificaciones() {
 
 	mias := []models.Notificacion{}
 	for _, n := range todas {
-		if n.UsuarioId == claims.ID {
+		if n.UsuarioId == sesion.ID {
 			mias = append(mias, n)
 		}
 	}
@@ -369,8 +369,8 @@ func (c *TruequesController) Notificaciones() {
 
 // PATCH /api/v1/notificaciones/:id/leida
 func (c *TruequesController) MarcarLeida() {
-	claims, ok := exigirUsuario(&c.Controller)
-	if !ok {
+	sesion, valido := exigirUsuario(&c.Controller)
+	if !valido {
 		return
 	}
 
@@ -383,7 +383,7 @@ func (c *TruequesController) MarcarLeida() {
 		return
 	}
 
-	if notificacion.UsuarioId != claims.ID {
+	if notificacion.UsuarioId != sesion.ID {
 		responderError(&c.Controller, 403, "Esta notificación no es tuya.")
 		return
 	}
@@ -401,8 +401,8 @@ func (c *TruequesController) MarcarLeida() {
 
 // PATCH /api/v1/notificaciones/leidas
 func (c *TruequesController) MarcarTodasLeidas() {
-	claims, ok := exigirUsuario(&c.Controller)
-	if !ok {
+	sesion, valido := exigirUsuario(&c.Controller)
+	if !valido {
 		return
 	}
 
@@ -416,7 +416,7 @@ func (c *TruequesController) MarcarTodasLeidas() {
 	}
 
 	for _, n := range todas {
-		if n.UsuarioId == claims.ID && !n.Leida {
+		if n.UsuarioId == sesion.ID && !n.Leida {
 			n.Leida = true
 			err = crud.Actualizar("notificaciones", n.Id, n, nil)
 			if err != nil {
