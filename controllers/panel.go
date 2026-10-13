@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	beego "github.com/beego/beego/v2/server/web"
+	"golang.org/x/crypto/bcrypt"
 
 	"xchango_mid/models"
 )
@@ -68,3 +69,40 @@ func (c *PanelController) CrearAdmin() {
 		nuevo.Estado = "activo"
 	}
 }
+
+	crud := services.NewCrudService()
+
+	var admins []models.AdminUsuario
+	err = crud.Listar("admins", &admins)
+	if err != nil {
+		errorCrud(&c.Controller, err)
+		return
+	}
+
+	for _, a := range admins {
+		if strings.ToLower(a.Email) == nuevo.Email {
+			responderError(&c.Controller, 409, "Ya existe un usuario interno con ese correo.")
+			return
+		}
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(nuevo.Password), bcrypt.DefaultCost)
+	if err != nil {
+		responderError(&c.Controller, 500, "No se pudo cifrar la contraseña.")
+		return
+	}
+
+	nuevo.Password = string(hash)
+	nuevo.Avatar = "https://i.pravatar.cc/80?u=" + nuevo.Email
+	nuevo.UltimoAcceso = ahora()
+
+	var creado models.AdminUsuario
+	err = crud.Crear("admins", nuevo, &creado)
+	if err != nil {
+		errorCrud(&c.Controller, err)
+		return
+	}
+
+	creado.Password = ""
+
+	responder(&c.Controller, 201, creado)

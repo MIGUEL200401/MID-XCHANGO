@@ -8,5 +8,5 @@ import (
 
 func init() {
 	// panel de administracion
-	beego.Router("/api/v1/admin/admins", &controllers.PanelController{}, "get:Admins")
+	beego.Router("/api/v1/admin/admins", &controllers.PanelController{}, "get:Admins;post:CrearAdmin")
 }
