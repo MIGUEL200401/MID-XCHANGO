@@ -30,3 +30,12 @@ type Documento struct {
 	Observacion string `json:"observacion"`
 	RevisadoPor *string `json:"revisadoPor"`
 }
+
+type SolicitudEliminar struct {
+	Motivo string `json:"motivo"`
+}
+
+type RevisionDocumento struct {
+	Estado string `json:"estado"`
+	Observacion string `json:"observacion"`
+}

@@ -39,3 +39,17 @@ type Categoria struct {
 	Nombre string `json:"nombre"`
 	Icono string `json:"icono"`
 }
+
+type AvisoUbicacion struct {
+	Id string `json:"id,omitempty"`
+	Municipio string `json:"municipio"`
+	Titulo string `json:"titulo"`
+	Mensaje string `json:"mensaje"`
+	Icono string `json:"icono"`
+}
+
+type Favorito struct {
+	Id string `json:"id,omitempty"`
+	UsuarioId string `json:"usuarioId"`
+	PublicacionId string `json:"publicacionId"`
+}
