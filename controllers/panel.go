@@ -363,6 +363,73 @@ func (c *PanelController) Metricas() {
 	responder(&c.Controller, 200, metricas)
 }
 
+	// ---------- se compara el mes anterior  ----------
+	mesAnterior := esteMes.AddDate(0, -1, 0)
+	finMes := esteMes.AddDate(0, 1, 0)
+
+	usuariosHastaHoy := 0
+	usuariosHastaAnterior := 0
+	nuevosActual := 0
+	nuevosAnterior := 0
+	for _, u := range usuarios {
+		fecha := leerFecha(u.FechaRegistro)
+		if fecha.Before(finMes) {
+			usuariosHastaHoy++
+		}
+		if fecha.Before(esteMes) {
+			usuariosHastaAnterior++
+		}
+		if enRango(u.FechaRegistro, esteMes, finMes) {
+			nuevosActual++
+		}
+		if enRango(u.FechaRegistro, mesAnterior, esteMes) {
+			nuevosAnterior++
+		}
+	}
+
+	publicacionesActual := 0
+	publicacionesAnterior := 0
+	for _, p := range publicaciones {
+		if enRango(p.FechaCreacion, esteMes, finMes) {
+			publicacionesActual++
+		}
+		if enRango(p.FechaCreacion, mesAnterior, esteMes) {
+			publicacionesAnterior++
+		}
+	}
+
+	intercambiosActual := 0
+	intercambiosAnterior := 0
+	for _, t := range trueques {
+		if t.Estado == "completado" && t.FechaCierre != nil {
+			if enRango(*t.FechaCierre, esteMes, finMes) {
+				intercambiosActual++
+			}
+			if enRango(*t.FechaCierre, mesAnterior, esteMes) {
+				intercambiosAnterior++
+			}
+		}
+	}
+
+	reportesActual := 0
+	reportesAnterior := 0
+	for _, r := range reportes {
+		if enRango(r.Fecha, esteMes, finMes) {
+			reportesActual++
+		}
+		if enRango(r.Fecha, mesAnterior, esteMes) {
+			reportesAnterior++
+		}
+	}
+
+	metricas.Comparativas = map[string]models.Comparativa{
+		"usuarios":       comparar(usuariosHastaHoy, usuariosHastaAnterior),
+		"usuariosNuevos": comparar(nuevosActual, nuevosAnterior),
+		"publicaciones":  comparar(publicacionesActual, publicacionesAnterior),
+		"intercambios":   comparar(intercambiosActual, intercambiosAnterior),
+		"reportes":       comparar(reportesActual, reportesAnterior),
+	}
+
 	// ---------- por categoria ----------
 	metricas.PublicacionesPorCategoria = []models.Punto{}
 	metricas.CrecimientoCategorias = []models.Punto{}
@@ -440,3 +507,5 @@ func (c *PanelController) Metricas() {
 		metricas.ActividadMensual = append(metricas.ActividadMensual, models.Punto{Label: nombre, Valor: actividad})
 		metricas.IntercambiosPorMes = append(metricas.IntercambiosPorMes, models.Punto{Label: nombre, Valor: cerrados})
 	}
+
+	
