@@ -9,6 +9,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"xchango_mid/models"
+	"xchango_mid/services"
 )
 
 // Administra las metricas del historial, alertas y metricas del panel
@@ -68,7 +69,6 @@ func (c *PanelController) CrearAdmin() {
 	if nuevo.Estado != "activo" && nuevo.Estado != "inactivo" {
 		nuevo.Estado = "activo"
 	}
-}
 
 	crud := services.NewCrudService()
 
@@ -106,6 +106,7 @@ func (c *PanelController) CrearAdmin() {
 	creado.Password = ""
 
 	responder(&c.Controller, 201, creado)
+}
 
 // aqui se cambia si un admin queda activo o inactivo
 func (c *PanelController) EstadoAdmin() {
@@ -144,6 +145,29 @@ func (c *PanelController) EstadoAdmin() {
 	admin.Estado = cambio.Estado
 
 	err = crud.Actualizar("admins", id, admin, nil)
+	if err != nil {
+		errorCrud(&c.Controller, err)
+		return
+	}
+
+	responderVacio(&c.Controller)
+}
+
+// borrar un admin del panel
+func (c *PanelController) EliminarAdmin() {
+	claims, ok := exigirAdmin(&c.Controller, true)
+	if !ok {
+		return
+	}
+
+	id := c.Ctx.Input.Param(":id")
+
+	if id == claims.ID {
+		responderError(&c.Controller, 400, "No puedes eliminar tu propia cuenta.")
+		return
+	}
+
+	err := services.NewCrudService().Borrar("admins", id)
 	if err != nil {
 		errorCrud(&c.Controller, err)
 		return
