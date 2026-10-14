@@ -299,3 +299,66 @@ func (c *PanelController) TodasLeidas() {
 
 	responderVacio(&c.Controller)
 }
+
+// todos los numeros y graficas del dashboard
+func (c *PanelController) Metricas() {
+	_, ok := exigirAdmin(&c.Controller, false)
+	if !ok {
+		return
+	}
+
+	crud := services.NewCrudService()
+
+	var usuarios []models.Usuario
+	var publicaciones []models.Publicacion
+	var trueques []models.Trueque
+	var reportes []models.Reporte
+	var categorias []models.Categoria
+
+	err := crud.Listar("usuarios", &usuarios)
+	if err == nil {
+		err = crud.Listar("publicaciones", &publicaciones)
+	}
+	if err == nil {
+		err = crud.Listar("trueques", &trueques)
+	}
+	if err == nil {
+		err = crud.Listar("reportes", &reportes)
+	}
+	if err == nil {
+		err = crud.Listar("categorias", &categorias)
+	}
+	if err != nil {
+		errorCrud(&c.Controller, err)
+		return
+	}
+
+	var metricas models.Metricas
+
+	// ---------- totales ----------
+	metricas.Resumen.Usuarios = len(usuarios)
+	for _, u := range usuarios {
+		if u.Estado == "suspendido" {
+			metricas.Resumen.UsuariosSuspendidos++
+		} else {
+			metricas.Resumen.UsuariosActivos++
+		}
+	}
+	for _, p := range publicaciones {
+		if p.Estado != "eliminada" {
+			metricas.Resumen.Publicaciones++
+		}
+	}
+	for _, t := range trueques {
+		if t.Estado == "completado" {
+			metricas.Resumen.Intercambios++
+		}
+	}
+	for _, r := range reportes {
+		if r.Estado == "pendiente" {
+			metricas.Resumen.PublicacionesReportadas++
+		}
+	}
+
+	responder(&c.Controller, 200, metricas)
+}

@@ -14,4 +14,5 @@ func init() {
 	beego.Router("/api/v1/admin/alertas", &controllers.PanelController{}, "get:Alertas")
 	beego.Router("/api/v1/admin/alertas/leidas", &controllers.PanelController{}, "patch:TodasLeidas")
 	beego.Router("/api/v1/admin/alertas/:id/leida", &controllers.PanelController{}, "patch:AlertaLeida")
+	beego.Router("/api/v1/admin/metricas", &controllers.PanelController{}, "get:Metricas")
 }
