@@ -17,4 +17,10 @@ func init() {
 	}))
 
 	beego.Router("/api/v1/auth/pin", &controllers.AuthController{}, "post:EnviarPin")
+	beego.Router("/api/v1/auth/verificar", &controllers.AuthController{}, "post:VerificarPin")
+	beego.Router("/api/v1/auth/registro", &controllers.AuthController{}, "post:Registro")
+	beego.Router("/api/v1/auth/perfil", &controllers.AuthController{}, "get:Perfil")
+	beego.Router("/api/v1/usuarios", &controllers.AuthController{}, "get:ListarUsuarios")
+	beego.Router("/api/v1/usuarios/perfil", &controllers.AuthController{}, "put:ActualizarPerfil")
+	beego.Router("/api/v1/auth/admin/login", &controllers.AuthController{}, "post:LoginAdmin")
 }
