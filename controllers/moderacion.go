@@ -1,11 +1,12 @@
 package controllers
 
 import (
+	"MID-XCHANGO/models"
 	"strings"
 
 	beego "github.com/beego/beego/v2/server/web"
 
-	"MID-XCHANGO/models"
+	"xchango_mid/models"
 	"xchango_mid/services"
 )
 
