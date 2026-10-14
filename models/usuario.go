@@ -18,3 +18,12 @@ type Usuario struct {
 	Intercambios        int     `json:"intercambios"`
 	Reportes            int     `json:"reportes"`
 }
+
+// lo que se puede cambiar desde el perfil
+type CambiosPerfil struct {
+	Nombre      string `json:"nombre"`
+	Telefono    string `json:"telefono"`
+	Ubicacion   string `json:"ubicacion"`
+	Descripcion string `json:"descripcion"`
+	Avatar      string `json:"avatar"`
+}
