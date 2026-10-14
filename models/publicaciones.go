@@ -48,7 +48,7 @@ type AvisoUbicacion struct {
 	Icono string `json:"icono"`
 }
 
-type Favorito struct {
+type Favoritos struct {
 	Id string `json:"id,omitempty"`
 	UsuarioId string `json:"usuarioId"`
 	PublicacionId string `json:"publicacionId"`
