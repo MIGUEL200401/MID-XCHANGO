@@ -16,7 +16,7 @@ func responder(c *beego.Controller, codigo int, datos interface{}) {
 
 func responderError(c *beego.Controller, codigo int, mensaje string) {
 	responder(c, codigo, map[string]interface{}{
-		"ok":      false,
+		"valido":  false,
 		"mensaje": mensaje,
 	})
 }

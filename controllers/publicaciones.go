@@ -13,38 +13,36 @@ type PublicacionesController struct {
 	beego.Controller
 }
 
-
-//GET/api/v1/categorias
+// GET/api/v1/categorias
 func (c *PublicacionesController) Categorias() {
 	var categorias []models.Categoria
 
 	err := services.NewCrudServices().Listar("categorias", &categorias)
-	if err != nil{
+	if err != nil {
 		errorCrud(&c.Controller, err)
 		return
 	}
 	responder(&c.Controller, 200, categorias)
 }
 
-//GET/api/v1/avisos-ubicacion
+// GET/api/v1/avisos-ubicacion
 func (c *PublicacionesController) Avisos() {
 	var avisos []models.AvisoUbicacion
-	
+
 	err := services.NewCrudService().Listar("avisos-ubicacion", &avisos)
-	if err != nil{
+	if err != nil {
 		errorCrud(&c.Controller, err)
 		return
 	}
 	responder(&c.Controller, 200, avisos)
 }
 
-
-//GET/api/v1/publicaciones
+// GET/api/v1/publicaciones
 func (c *PublicacionesController) Listar() {
 	var todas []models.Publicacion
 
 	err := services.NewCrudService().Listar("publicaciones", &todas)
-	if err != nil{
+	if err != nil {
 		errorCrud(&c.Controller, err)
 		return
 	}
@@ -58,11 +56,10 @@ func (c *PublicacionesController) Listar() {
 	responder(&c.Controller, 200, visibles)
 }
 
-
-//POST/api/v1/publicaciones
+// POST/api/v1/publicaciones
 func (c *PublicacionesController) Crear() {
-	claims, ok := exigirUsuario(&c.Controller)
-	if !ok {
+	sesion, valido := exigirUsuario(&c.Controller)
+	if !valido {
 		return
 	}
 
@@ -73,20 +70,20 @@ func (c *PublicacionesController) Crear() {
 	}
 
 	mensaje := validarPublicacion(datos)
-	if mensaje !=""{
+	if mensaje != "" {
 		responderError(&c.Controller, 400, mensaje)
 		return
 	}
 
-	if !usuarioPuedeActuar(&c.Controller, claims.ID) {
+	if !usuarioPuedeActuar(&c.Controller, sesion.ID) {
 		return
 	}
 
 	nueva := models.Publicacion{
-		UsuarioId: claims.ID,
-		Estado: "activa",
-		Vistas: 0,
-		FechaCreacion: hoy(),
+		UsuarioId:         sesion.ID,
+		Estado:            "activa",
+		Vistas:            0,
+		FechaCreacion:     hoy(),
 		FechaModificacion: hoy(),
 	}
 	armarPublicacion(&nueva, datos)
@@ -100,11 +97,10 @@ func (c *PublicacionesController) Crear() {
 	responder(&c.Controller, 201, creada)
 }
 
-
-//PUT/api/v1/publicaciones/:id
+// PUT/api/v1/publicaciones/:id
 func (c *PublicacionesController) Actualizar() {
-	claims, ok := exigirUsuario(&c.Controller)
-	if !ok {
+	sesion, valido := exigirUsuario(&c.Controller)
+	if !valido {
 		return
 	}
 
@@ -117,7 +113,7 @@ func (c *PublicacionesController) Actualizar() {
 	}
 
 	mensaje := validarPublicacion(datos)
-	if mensaje !="" {
+	if mensaje != "" {
 		responderError(&c.Controller, 400, mensaje)
 		return
 	}
@@ -131,7 +127,7 @@ func (c *PublicacionesController) Actualizar() {
 		return
 	}
 
-	if publicacion.UsuarioId != claims.ID {
+	if publicacion.UsuarioId != sesion.ID {
 		responderError(&c.Controller, 403, "Esta publicacion no es tuya.")
 		return
 	}
@@ -152,11 +148,10 @@ func (c *PublicacionesController) Actualizar() {
 	responder(&c.Controller, 200, publicacion)
 }
 
-
-//DELETE/api/v1/publicaciones/:id
+// DELETE/api/v1/publicaciones/:id
 func (c *PublicacionesController) Eliminar() {
-	claims, ok := exigirUsuario(&c.Controller)
-	if !ok {
+	sesion, valido := exigirUsuario(&c.Controller)
+	if !valido {
 		return
 	}
 
@@ -170,7 +165,7 @@ func (c *PublicacionesController) Eliminar() {
 		return
 	}
 
-	if publicacion.UsuarioId != claims.ID {
+	if publicacion.UsuarioId != sesion.ID {
 		responderError(&c.Controller, 403, "Esta publicacion no es tuya.")
 		return
 	}
@@ -186,11 +181,10 @@ func (c *PublicacionesController) Eliminar() {
 	responderVacio(&c.Controller)
 }
 
-
-//PATCH/api/v1/publicaciones/:id/estado
+// PATCH/api/v1/publicaciones/:id/estado
 func (c *PublicacionesController) CambiarEstado() {
-	claims, ok := exigirUsuario(&c.Controller)
-	if !ok {
+	sesion, valido := exigirUsuario(&c.Controller)
+	if !valido {
 		return
 	}
 
@@ -204,7 +198,7 @@ func (c *PublicacionesController) CambiarEstado() {
 		return
 	}
 
-	if publicacion.UsuarioId != claims.ID {
+	if publicacion.UsuarioId != sesion.ID {
 		responderError(&c.Controller, 403, "Esta publicacion no es tuya.")
 		return
 	}
@@ -226,11 +220,10 @@ func (c *PublicacionesController) CambiarEstado() {
 	responder(&c.Controller, 200, map[string]string{"estado": publicacion.Estado})
 }
 
-
-//GET/api/v1/favoritos
+// GET/api/v1/favoritos
 func (c *PublicacionesController) Favoritos() {
-	claims, ok := exigirUsuario(&c.Controller)
-	if !ok {
+	sesion, valido := exigirUsuario(&c.Controller)
+	if !valido {
 		return
 	}
 
@@ -243,18 +236,17 @@ func (c *PublicacionesController) Favoritos() {
 
 	ids := []string{}
 	for _, f := range favoritos {
-		if f.UsuarioId == claims.ID {
+		if f.UsuarioId == sesion.ID {
 			ids = append(ids, f.PublicacionId)
 		}
 	}
 	responder(&c.Controller)
 }
 
-
-//POST/api/v1/favoritos/:id (si ya era favorito lo quita)
+// POST/api/v1/favoritos/:id (si ya era favorito lo quita)
 func (c *PublicacionesController) AlternarFavorito() {
-	claims, ok := exigirUsuario(&c.Controller)
-	if !ok {
+	sesion, valido := exigirUsuario(&c.Controller)
+	if !valido {
 		return
 	}
 
@@ -269,7 +261,7 @@ func (c *PublicacionesController) AlternarFavorito() {
 	}
 
 	for _, f := range favoritos {
-		if f.UsuarioId == claims.ID && f.PublicacionId == publicacionId {
+		if f.UsuarioId == sesion.ID && f.PublicacionId == publicacionId {
 			err = crud.Borrar("favoritos", f.Id)
 			if err != nil {
 				errorCrud(&c.Controller, err)
@@ -280,7 +272,7 @@ func (c *PublicacionesController) AlternarFavorito() {
 		}
 	}
 
-	nuevo := models.Favoritos{UsuarioId: claims.ID, PublicacionId: publicacionId}
+	nuevo := models.Favoritos{UsuarioId: sesion.ID, PublicacionId: publicacionId}
 
 	err = crud.Crear("favoritos", nuevo, nil)
 	if err != nil {
@@ -290,10 +282,9 @@ func (c *PublicacionesController) AlternarFavorito() {
 	responderVacio(&c.Controller)
 }
 
-
 func validarPublicacion(d models.DatosPublicacion) string {
 	if d.Tipo != "bien_fisico" && d.Tipo != "servicio" && d.Tipo != "bien_digital" {
-		return  "El tipo de publicacion no es valido."
+		return "El tipo de publicacion no es valido."
 	}
 	if strings.TrimSpace(d.Titulo) == "" {
 		return "El titulo es obligatorio."
@@ -301,22 +292,21 @@ func validarPublicacion(d models.DatosPublicacion) string {
 	if strings.TrimSpace(d.Descripcion) == "" {
 		return "La descripcion es obligatoria."
 	}
-	if strings.TrimSpace(d.CategoriaId) =="" {
+	if strings.TrimSpace(d.CategoriaId) == "" {
 		return "Elige una categoria."
 	}
 	if d.Tipo != "bien_digital" && strings.TrimSpace(d.Municipio) == "" {
 		return "El municipio es obligatorio."
 	}
 	if d.Tipo == "bien _fisico" && strings.TrimSpace(d.Barrio) == "" {
-		return "El barrio dece de ser obligatorio para un bien fsico" 
+		return "El barrio dece de ser obligatorio para un bien fsico"
 	}
 	return ""
 }
 
-
-//El bien fisico lleva municiio y barrio, el servicio solo municipio
-//Y el bien digital no lleva ubicacion
-func armarPublicacion (p *models.Publicacion, d models.DatosPublicacion) {
+// El bien fisico lleva municiio y barrio, el servicio solo municipio
+// Y el bien digital no lleva ubicacion
+func armarPublicacion(p *models.Publicacion, d models.DatosPublicacion) {
 	p.Tipo = d.Tipo
 	p.CategoriaId = d.CategoriaId
 	p.Titulo = strings.TrimSpace(d.Titulo)
@@ -361,4 +351,3 @@ func armarPublicacion (p *models.Publicacion, d models.DatosPublicacion) {
 		}
 	}
 }
-

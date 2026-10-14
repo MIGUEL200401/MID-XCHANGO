@@ -17,10 +17,10 @@ import (
 	"xchango_mid/services"
 )
 
-// El pin se guarda en la ram, no en la base 
+// El pin se guarda en la ram, no en la base
 var pines = make(map[string]models.CodigoPin)
 
-// candado para que no se crucen las peticiones 
+// candado para que no se crucen las peticiones
 var candadoPines sync.RWMutex
 
 const maximoIntentos = 5
@@ -109,7 +109,7 @@ func (c *AuthController) EnviarPin() {
 	}
 
 	responder(&c.Controller, 200, map[string]interface{}{
-		"ok":               true,
+		"valido":           true,
 		"mensaje":          "Te enviamos un PIN al correo.",
 		"requiereRegistro": requiereRegistro,
 	})
@@ -138,7 +138,6 @@ func mandarPin(correo string, pin string, nombre string) error {
 	if err != nil {
 		return err
 	}
-
 
 	logo, _ := os.ReadFile("templates/logo.png")
 
