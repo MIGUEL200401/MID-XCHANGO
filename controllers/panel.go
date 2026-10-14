@@ -175,3 +175,53 @@ func (c *PanelController) EliminarAdmin() {
 
 	responderVacio(&c.Controller)
 }
+
+// ver todo lo que han hecho los admins
+func (c *PanelController) Historial() {
+	_, ok := exigirAdmin(&c.Controller, false)
+	if !ok {
+		return
+	}
+
+	var acciones []models.AccionAdmin
+	err := services.NewCrudService().Listar("historial-acciones", &acciones)
+	if err != nil {
+		errorCrud(&c.Controller, err)
+		return
+	}
+
+	responder(&c.Controller, 200, acciones)
+}
+
+// guardar una accion nueva en el historial
+func (c *PanelController) RegistrarAccion() {
+	claims, ok := exigirAdmin(&c.Controller, false)
+	if !ok {
+		return
+	}
+
+	var accion models.AccionAdmin
+
+	if !leerCuerpo(&c.Controller, &accion) {
+		return
+	}
+
+	if strings.TrimSpace(accion.Accion) == "" {
+		responderError(&c.Controller, 400, "La acción es obligatoria.")
+		return
+	}
+
+	// el admin sale del token, no de lo que mande el cliente
+	accion.Id = ""
+	accion.AdminId = claims.ID
+	accion.Fecha = ahora()
+
+	var creada models.AccionAdmin
+	err := services.NewCrudService().Crear("historial-acciones", accion, &creada)
+	if err != nil {
+		errorCrud(&c.Controller, err)
+		return
+	}
+
+	responder(&c.Controller, 201, creada)
+}
