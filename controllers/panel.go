@@ -362,3 +362,45 @@ func (c *PanelController) Metricas() {
 
 	responder(&c.Controller, 200, metricas)
 }
+
+	// ---------- por mes (los ultimos 8) ----------
+	nombresMes := []string{"Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"}
+
+	ahoraMismo := time.Now()
+	esteMes := time.Date(ahoraMismo.Year(), ahoraMismo.Month(), 1, 0, 0, 0, 0, time.UTC)
+
+	metricas.ActividadMensual = []models.Punto{}
+	metricas.IntercambiosPorMes = []models.Punto{}
+
+	for i := 7; i >= 0; i-- {
+		inicio := esteMes.AddDate(0, -i, 0)
+		fin := inicio.AddDate(0, 1, 0)
+
+		actividad := 0
+		for _, u := range usuarios {
+			if enRango(u.FechaRegistro, inicio, fin) {
+				actividad++
+			}
+		}
+		for _, p := range publicaciones {
+			if enRango(p.FechaCreacion, inicio, fin) {
+				actividad++
+			}
+		}
+		for _, t := range trueques {
+			if enRango(t.FechaSolicitud, inicio, fin) {
+				actividad++
+			}
+		}
+
+		cerrados := 0
+		for _, t := range trueques {
+			if t.Estado == "completado" && t.FechaCierre != nil && enRango(*t.FechaCierre, inicio, fin) {
+				cerrados++
+			}
+		}
+
+		nombre := nombresMes[inicio.Month()-1]
+		metricas.ActividadMensual = append(metricas.ActividadMensual, models.Punto{Label: nombre, Valor: actividad})
+		metricas.IntercambiosPorMes = append(metricas.IntercambiosPorMes, models.Punto{Label: nombre, Valor: cerrados})
+	}
