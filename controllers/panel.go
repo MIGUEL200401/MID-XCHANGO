@@ -363,6 +363,42 @@ func (c *PanelController) Metricas() {
 	responder(&c.Controller, 200, metricas)
 }
 
+	// ---------- por categoria ----------
+	metricas.PublicacionesPorCategoria = []models.Punto{}
+	metricas.CrecimientoCategorias = []models.Punto{}
+
+	hace30Dias := ahoraMismo.AddDate(0, 0, -30)
+
+	for _, cat := range categorias {
+		total := 0
+		nuevas := 0
+
+		for _, p := range publicaciones {
+			if p.CategoriaId == cat.Id && p.Estado != "eliminada" {
+				total++
+				if leerFecha(p.FechaCreacion).After(hace30Dias) {
+					nuevas++
+				}
+			}
+		}
+
+		metricas.PublicacionesPorCategoria = append(metricas.PublicacionesPorCategoria, models.Punto{Label: cat.Nombre, Valor: total})
+		metricas.CrecimientoCategorias = append(metricas.CrecimientoCategorias, models.Punto{Label: cat.Nombre, Valor: nuevas})
+	}
+
+	// ---------- por municipio ----------
+	conteo := map[string]int{}
+	for _, p := range publicaciones {
+		if p.Estado != "eliminada" && p.Municipio != "" {
+			conteo[p.Municipio]++
+		}
+	}
+
+	metricas.ActividadPorUbicacion = []models.Punto{}
+	for municipio, total := range conteo {
+		metricas.ActividadPorUbicacion = append(metricas.ActividadPorUbicacion, models.Punto{Label: municipio, Valor: total})
+	}
+
 	// ---------- por mes (los ultimos 8) ----------
 	nombresMes := []string{"Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"}
 
