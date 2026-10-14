@@ -225,3 +225,77 @@ func (c *PanelController) RegistrarAccion() {
 
 	responder(&c.Controller, 201, creada)
 }
+
+// ver las alertas del panel
+func (c *PanelController) Alertas() {
+	_, ok := exigirAdmin(&c.Controller, false)
+	if !ok {
+		return
+	}
+
+	var alertas []models.Alerta
+	err := services.NewCrudService().Listar("alertas", &alertas)
+	if err != nil {
+		errorCrud(&c.Controller, err)
+		return
+	}
+
+	responder(&c.Controller, 200, alertas)
+}
+
+// marcar una sola alerta como leida
+func (c *PanelController) AlertaLeida() {
+	_, ok := exigirAdmin(&c.Controller, false)
+	if !ok {
+		return
+	}
+
+	crud := services.NewCrudService()
+
+	var alerta models.Alerta
+	err := crud.Obtener("alertas", c.Ctx.Input.Param(":id"), &alerta)
+	if err != nil {
+		errorCrud(&c.Controller, err)
+		return
+	}
+
+	alerta.Leida = true
+
+	err = crud.Actualizar("alertas", alerta.Id, alerta, nil)
+	if err != nil {
+		errorCrud(&c.Controller, err)
+		return
+	}
+
+	responderVacio(&c.Controller)
+}
+
+// marcar todas las alertas como leidas de una vez
+func (c *PanelController) TodasLeidas() {
+	_, ok := exigirAdmin(&c.Controller, false)
+	if !ok {
+		return
+	}
+
+	crud := services.NewCrudService()
+
+	var alertas []models.Alerta
+	err := crud.Listar("alertas", &alertas)
+	if err != nil {
+		errorCrud(&c.Controller, err)
+		return
+	}
+
+	for _, a := range alertas {
+		if !a.Leida {
+			a.Leida = true
+			err = crud.Actualizar("alertas", a.Id, a, nil)
+			if err != nil {
+				errorCrud(&c.Controller, err)
+				return
+			}
+		}
+	}
+
+	responderVacio(&c.Controller)
+}
