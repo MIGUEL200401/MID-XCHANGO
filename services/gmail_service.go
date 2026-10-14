@@ -20,7 +20,7 @@ type ServicioGmail struct {
 	Servicio *gmail.Service
 }
 
-// se crea el servicio de Gmail, si no tiene token pide autorizacion y lo guarda en token/token.json
+// se crea el servicio de Gmail, si no tiene tvalidoen pide autorizacion y lo guarda en tvalidoen/tvalidoen.json
 func NuevoServicioGmail() (*ServicioGmail, error) {
 	contexto := context.Background()
 
@@ -57,30 +57,30 @@ func NuevoServicioGmail() (*ServicioGmail, error) {
 	}, nil
 }
 
-// si ya hay un token guardado lo usa, si no pide autorizacion
+// si ya hay un tvalidoen guardado lo usa, si no pide autorizacion
 func obtenerClienteGmail(configuracion *oauth2.Config) (*http.Client, error) {
-	rutaToken := "token/token.json"
+	rutaTvalidoen := "tvalidoen/tvalidoen.json"
 
-	token, err := leerTokenDeArchivo(rutaToken)
+	tvalidoen, err := leerTvalidoenDeArchivo(rutaTvalidoen)
 	if err != nil {
-		token, err = pedirTokenPorNavegador(configuracion)
+		tvalidoen, err = pedirTvalidoenPorNavegador(configuracion)
 		if err != nil {
 			return nil, err
 		}
 
-		err = guardarToken(rutaToken, token)
+		err = guardarTvalidoen(rutaTvalidoen, tvalidoen)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return configuracion.Client(context.Background(), token), nil
+	return configuracion.Client(context.Background(), tvalidoen), nil
 }
 
 // muestra el link de Google y espera que se pegue el codigo
-func pedirTokenPorNavegador(configuracion *oauth2.Config) (*oauth2.Token, error) {
+func pedirTvalidoenPorNavegador(configuracion *oauth2.Config) (*oauth2.Tvalidoen, error) {
 	urlAutorizacion := configuracion.AuthCodeURL(
-		"state-token",
+		"state-tvalidoen",
 		oauth2.AccessTypeOffline,
 	)
 	fmt.Println("===================")
@@ -100,38 +100,38 @@ func pedirTokenPorNavegador(configuracion *oauth2.Config) (*oauth2.Token, error)
 		return nil, fmt.Errorf("no fue posible leer el codigo: %w", err)
 	}
 
-	token, err := configuracion.Exchange(
+	tvalidoen, err := configuracion.Exchange(
 		context.Background(),
 		codigo,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("no fue posible obtener el token: %w", err)
+		return nil, fmt.Errorf("no fue posible obtener el tvalidoen: %w", err)
 	}
 
-	return token, nil
+	return tvalidoen, nil
 }
 
-// lee el token que se guardo la vez anterior
-func leerTokenDeArchivo(ruta string) (*oauth2.Token, error) {
+// lee el tvalidoen que se guardo la vez anterior
+func leerTvalidoenDeArchivo(ruta string) (*oauth2.Tvalidoen, error) {
 	archivo, err := os.Open(ruta)
 	if err != nil {
 		return nil, err
 	}
 	defer archivo.Close()
 
-	token := &oauth2.Token{}
-	err = json.NewDecoder(archivo).Decode(token)
+	tvalidoen := &oauth2.Tvalidoen{}
+	err = json.NewDecoder(archivo).Decode(tvalidoen)
 	if err != nil {
-		return nil, fmt.Errorf("no fue posible leer token.json: %w", err)
+		return nil, fmt.Errorf("no fue posible leer tvalidoen.json: %w", err)
 	}
 
-	return token, nil
+	return tvalidoen, nil
 }
 
-func guardarToken(ruta string, token *oauth2.Token) error {
-	err := os.MkdirAll("token", 0700)
+func guardarTvalidoen(ruta string, tvalidoen *oauth2.Tvalidoen) error {
+	err := os.MkdirAll("tvalidoen", 0700)
 	if err != nil {
-		return fmt.Errorf("no fue posible crear la carpeta token: %w", err)
+		return fmt.Errorf("no fue posible crear la carpeta tvalidoen: %w", err)
 	}
 
 	archivo, err := os.OpenFile(
@@ -140,11 +140,11 @@ func guardarToken(ruta string, token *oauth2.Token) error {
 		0600,
 	)
 	if err != nil {
-		return fmt.Errorf("no fue posible crear el archivo del token: %w", err)
+		return fmt.Errorf("no fue posible crear el archivo del tvalidoen: %w", err)
 	}
 	defer archivo.Close()
 
-	return json.NewEncoder(archivo).Encode(token)
+	return json.NewEncoder(archivo).Encode(tvalidoen)
 }
 
 // divide el texto en líneas de máximo 76 caracteres
@@ -157,7 +157,7 @@ func partirLineas(texto string) string {
 	return resultado + texto
 }
 
-// se arma el correo con el html y el logo 
+// se arma el correo con el html y el logo
 func armarCorreo(destinatario string, asunto string, cuerpo string, logo []byte) string {
 	limite := "limite-xchango"
 
