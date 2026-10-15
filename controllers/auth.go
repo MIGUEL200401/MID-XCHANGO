@@ -110,7 +110,7 @@ func (c *AuthController) EnviarPin() {
 	}
 
 	responder(&c.Controller, 200, map[string]interface{}{
-		"valido":           true,
+		"ok":               true,
 		"mensaje":          "Te enviamos un PIN al correo.",
 		"requiereRegistro": requiereRegistro,
 	})
@@ -318,14 +318,20 @@ func (c *AuthController) Perfil() {
 		return
 	}
 
-	var usuario models.Usuario
-	err := services.NewCrudService().Obtener("usuarios", claims.ID, &usuario)
+	usuarios, err := cargarUsuarios()
 	if err != nil {
 		errorCrud(&c.Controller, err)
 		return
 	}
 
-	responder(&c.Controller, 200, usuario)
+	for _, u := range usuarios {
+		if u.Id == claims.ID {
+			responder(&c.Controller, 200, u)
+			return
+		}
+	}
+
+	responderError(&c.Controller, 404, "No encontramos tu cuenta.")
 }
 
 // PUT /api/v1/usuarios/perfil
@@ -371,6 +377,19 @@ func (c *AuthController) ActualizarPerfil() {
 	if err != nil {
 		errorCrud(&c.Controller, err)
 		return
+	}
+
+	usuarios, err := cargarUsuarios()
+	if err != nil {
+		errorCrud(&c.Controller, err)
+		return
+	}
+
+	for _, u := range usuarios {
+		if u.Id == usuario.Id {
+			responder(&c.Controller, 200, u)
+			return
+		}
 	}
 
 	responder(&c.Controller, 200, usuario)

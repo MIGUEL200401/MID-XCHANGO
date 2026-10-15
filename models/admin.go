@@ -11,37 +11,6 @@ type AdminUsuario struct {
 	UltimoAcceso string `json:"ultimoAcceso"`
 }
 
-type Reporte struct {
-	Id            string `json:"id,omitempty"`
-	PublicacionId string `json:"publicacionId"`
-	ReportanteId  string `json:"reportanteId"`
-	Motivo        string `json:"motivo"`
-	Fecha         string `json:"fecha"`
-	Estado        string `json:"estado"`
-	Gravedad      string `json:"gravedad"`
-}
-
-type PublicacionEliminada struct {
-	Id            string `json:"id,omitempty"`
-	PublicacionId string `json:"publicacionId"`
-	UsuarioId     string `json:"usuarioId"`
-	AdminId       string `json:"adminId"`
-	Motivo        string `json:"motivo"`
-	Fecha         string `json:"fecha"`
-}
-
-type Documento struct {
-	Id            string  `json:"id,omitempty"`
-	UsuarioId     string  `json:"usuarioId"`
-	TipoDocumento string  `json:"tipoDocumento"`
-	Numero        string  `json:"numero"`
-	Archivo       string  `json:"archivo"`
-	FechaSubida   string  `json:"fechaSubida"`
-	Estado        string  `json:"estado"`
-	Observacion   string  `json:"observacion"`
-	RevisadoPor   *string `json:"revisadoPor"`
-}
-
 type Alerta struct {
 	Id        string `json:"id,omitempty"`
 	Tipo      string `json:"tipo"`
@@ -59,20 +28,6 @@ type AccionAdmin struct {
 	Accion      string `json:"accion"`
 	Descripcion string `json:"descripcion"`
 	Fecha       string `json:"fecha"`
-}
-
-// cuerpos de las peticiones del panel
-type CambioEstado struct {
-	Estado string `json:"estado"`
-}
-
-type SolicitudEliminar struct {
-	Motivo string `json:"motivo"`
-}
-
-type RevisionDocumento struct {
-	Estado      string `json:"estado"`
-	Observacion string `json:"observacion"`
 }
 
 // la metrica del dashboard

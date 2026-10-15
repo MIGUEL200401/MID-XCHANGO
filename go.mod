@@ -5,6 +5,7 @@ go 1.24.2
 require (
 	github.com/beego/beego/v2 v2.3.10
 	github.com/golang-jwt/jwt/v5 v5.3.1
+	golang.org/x/crypto v0.38.0
 	golang.org/x/oauth2 v0.26.0
 	google.golang.org/api v0.210.0
 )
@@ -37,7 +38,6 @@ require (
 	go.opentelemetry.io/otel v1.35.0 // indirect
 	go.opentelemetry.io/otel/metric v1.35.0 // indirect
 	go.opentelemetry.io/otel/trace v1.35.0 // indirect
-	golang.org/x/crypto v0.38.0 // indirect
 	golang.org/x/net v0.40.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.25.0 // indirect

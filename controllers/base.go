@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"math"
 	"strings"
 	"time"
 
@@ -22,6 +23,12 @@ func responderError(c *beego.Controller, codigo int, mensaje string) {
 		"ok":      false,
 		"mensaje": mensaje,
 	})
+}
+
+// para las respuestas sin cuerpo
+func responderVacio(c *beego.Controller) {
+	c.Ctx.Output.SetStatus(204)
+	c.Ctx.Output.Body([]byte(""))
 }
 
 func errorCrud(c *beego.Controller, err error) {
@@ -56,6 +63,20 @@ func hoy() string {
 
 func ahora() string {
 	return time.Now().Format("2006-01-02T15:04:05")
+}
+
+// las fechas del CRUD pueden venir de varias formas
+func leerFecha(texto string) time.Time {
+	formatos := []string{time.RFC3339, "2006-01-02T15:04:05", "2006-01-02"}
+
+	for _, formato := range formatos {
+		fecha, err := time.Parse(formato, texto)
+		if err == nil {
+			return fecha
+		}
+	}
+
+	return time.Time{}
 }
 
 // lee el token pero no responde error, solo devuelve false si no hay token o es invalido
@@ -119,4 +140,91 @@ func usuarioPuedeActuar(c *beego.Controller, id string) bool {
 	}
 
 	return true
+}
+
+// ---------- usuarios con sus contadores ----------
+
+// publicaciones, intercambios, reportes y calificacion no se guardan,
+// se cuentan cada vez con lo que hay en el CRUD
+func cargarUsuarios() ([]models.Usuario, error) {
+	crud := services.NewCrudService()
+
+	var usuarios []models.Usuario
+	var publicaciones []models.Publicacion
+	var trueques []models.Trueque
+	var reportes []models.Reporte
+
+	err := crud.Listar("usuarios", &usuarios)
+	if err != nil {
+		return nil, err
+	}
+	err = crud.Listar("publicaciones", &publicaciones)
+	if err != nil {
+		return nil, err
+	}
+	err = crud.Listar("trueques", &trueques)
+	if err != nil {
+		return nil, err
+	}
+	err = crud.Listar("reportes", &reportes)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range usuarios {
+		id := usuarios[i].Id
+		totalPublicaciones := 0
+		totalIntercambios := 0
+		totalReportes := 0
+		suma := 0
+		notas := 0
+
+		for _, p := range publicaciones {
+			if p.UsuarioId == id && p.Estado != "eliminada" {
+				totalPublicaciones++
+			}
+			if p.UsuarioId == id {
+				for _, r := range reportes {
+					if r.PublicacionId == p.Id {
+						totalReportes++
+					}
+				}
+			}
+		}
+
+		for _, t := range trueques {
+			if t.Estado == "completado" && (t.SolicitanteId == id || t.PropietarioId == id) {
+				totalIntercambios++
+			}
+			// la nota que pone uno la recibe el otro
+			if t.PropietarioId == id && t.CalificacionSolicitante != nil {
+				suma += *t.CalificacionSolicitante
+				notas++
+			}
+			if t.SolicitanteId == id && t.CalificacionPropietario != nil {
+				suma += *t.CalificacionPropietario
+				notas++
+			}
+		}
+
+		usuarios[i].Publicaciones = totalPublicaciones
+		usuarios[i].Intercambios = totalIntercambios
+		usuarios[i].Reportes = totalReportes
+		usuarios[i].TotalCalificaciones = notas
+		usuarios[i].Calificacion = 0
+		if notas > 0 {
+			usuarios[i].Calificacion = math.Round(float64(suma)/float64(notas)*10) / 10
+		}
+
+		total := totalPublicaciones + totalIntercambios
+		if total >= 8 {
+			usuarios[i].NivelActividad = "alto"
+		} else if total >= 3 {
+			usuarios[i].NivelActividad = "medio"
+		} else {
+			usuarios[i].NivelActividad = "bajo"
+		}
+	}
+
+	return usuarios, nil
 }
