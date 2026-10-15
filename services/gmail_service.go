@@ -20,7 +20,7 @@ type ServicioGmail struct {
 	Servicio *gmail.Service
 }
 
-// se crea el servicio de Gmail, si no tiene tvalidoen pide autorizacion y lo guarda en tvalidoen/tvalidoen.json
+// se crea el servicio de Gmail, si no tiene token pide autorizacion y lo guarda en token/token.json
 func NuevoServicioGmail() (*ServicioGmail, error) {
 	contexto := context.Background()
 
@@ -57,30 +57,30 @@ func NuevoServicioGmail() (*ServicioGmail, error) {
 	}, nil
 }
 
-// si ya hay un tvalidoen guardado lo usa, si no pide autorizacion
+// si ya hay un token guardado lo usa, si no pide autorizacion
 func obtenerClienteGmail(configuracion *oauth2.Config) (*http.Client, error) {
-	rutaTvalidoen := "tvalidoen/tvalidoen.json"
+	rutaToken := "token/token.json"
 
-	tvalidoen, err := leerTvalidoenDeArchivo(rutaTvalidoen)
+	token, err := leerTokenDeArchivo(rutaToken)
 	if err != nil {
-		tvalidoen, err = pedirTvalidoenPorNavegador(configuracion)
+		token, err = pedirTokenPorNavegador(configuracion)
 		if err != nil {
 			return nil, err
 		}
 
-		err = guardarTvalidoen(rutaTvalidoen, tvalidoen)
+		err = guardarToken(rutaToken, token)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return configuracion.Client(context.Background(), tvalidoen), nil
+	return configuracion.Client(context.Background(), token), nil
 }
 
 // muestra el link de Google y espera que se pegue el codigo
-func pedirTvalidoenPorNavegador(configuracion *oauth2.Config) (*oauth2.Tvalidoen, error) {
+func pedirTokenPorNavegador(configuracion *oauth2.Config) (*oauth2.Token, error) {
 	urlAutorizacion := configuracion.AuthCodeURL(
-		"state-tvalidoen",
+		"state-token",
 		oauth2.AccessTypeOffline,
 	)
 	fmt.Println("===================")
@@ -100,38 +100,38 @@ func pedirTvalidoenPorNavegador(configuracion *oauth2.Config) (*oauth2.Tvalidoen
 		return nil, fmt.Errorf("no fue posible leer el codigo: %w", err)
 	}
 
-	tvalidoen, err := configuracion.Exchange(
+	token, err := configuracion.Exchange(
 		context.Background(),
 		codigo,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("no fue posible obtener el tvalidoen: %w", err)
+		return nil, fmt.Errorf("no fue posible obtener el token: %w", err)
 	}
 
-	return tvalidoen, nil
+	return token, nil
 }
 
-// lee el tvalidoen que se guardo la vez anterior
-func leerTvalidoenDeArchivo(ruta string) (*oauth2.Tvalidoen, error) {
+// lee el token que se guardo la vez anterior
+func leerTokenDeArchivo(ruta string) (*oauth2.Token, error) {
 	archivo, err := os.Open(ruta)
 	if err != nil {
 		return nil, err
 	}
 	defer archivo.Close()
 
-	tvalidoen := &oauth2.Tvalidoen{}
-	err = json.NewDecoder(archivo).Decode(tvalidoen)
+	token := &oauth2.Token{}
+	err = json.NewDecoder(archivo).Decode(token)
 	if err != nil {
-		return nil, fmt.Errorf("no fue posible leer tvalidoen.json: %w", err)
+		return nil, fmt.Errorf("no fue posible leer token.json: %w", err)
 	}
 
-	return tvalidoen, nil
+	return token, nil
 }
 
-func guardarTvalidoen(ruta string, tvalidoen *oauth2.Tvalidoen) error {
-	err := os.MkdirAll("tvalidoen", 0700)
+func guardarToken(ruta string, token *oauth2.Token) error {
+	err := os.MkdirAll("token", 0700)
 	if err != nil {
-		return fmt.Errorf("no fue posible crear la carpeta tvalidoen: %w", err)
+		return fmt.Errorf("no fue posible crear la carpeta token: %w", err)
 	}
 
 	archivo, err := os.OpenFile(
@@ -140,11 +140,11 @@ func guardarTvalidoen(ruta string, tvalidoen *oauth2.Tvalidoen) error {
 		0600,
 	)
 	if err != nil {
-		return fmt.Errorf("no fue posible crear el archivo del tvalidoen: %w", err)
+		return fmt.Errorf("no fue posible crear el archivo del token: %w", err)
 	}
 	defer archivo.Close()
 
-	return json.NewEncoder(archivo).Encode(tvalidoen)
+	return json.NewEncoder(archivo).Encode(token)
 }
 
 // divide el texto en líneas de máximo 76 caracteres
