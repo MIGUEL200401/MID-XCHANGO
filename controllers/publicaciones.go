@@ -17,7 +17,7 @@ type PublicacionesController struct {
 func (c *PublicacionesController) Categorias() {
 	var categorias []models.Categoria
 
-	err := services.NewCrudServices().Listar("categorias", &categorias)
+	err := services.NewCrudService().Listar("categorias", &categorias)
 	if err != nil {
 		errorCrud(&c.Controller, err)
 		return
@@ -228,7 +228,7 @@ func (c *PublicacionesController) Favoritos() {
 	}
 
 	var favoritos []models.Favoritos
-	err := services.NewCrudServices().Listar("favoritos", &favoritos)
+	err := services.NewCrudService().Listar("favoritos", &favoritos)
 	if err != nil {
 		errorCrud(&c.Controller, err)
 		return
@@ -240,7 +240,7 @@ func (c *PublicacionesController) Favoritos() {
 			ids = append(ids, f.PublicacionId)
 		}
 	}
-	responder(&c.Controller)
+	responder(&c.Controller, 200, ids)
 }
 
 // POST/api/v1/favoritos/:id (si ya era favorito lo quita)
@@ -251,7 +251,7 @@ func (c *PublicacionesController) AlternarFavorito() {
 	}
 
 	publicacionId := c.Ctx.Input.Param(":id")
-	crud := services.NewCrudServices()
+	crud := services.NewCrudService()
 
 	var favoritos []models.Favoritos
 	err := crud.Listar("favoritos", &favoritos)
@@ -299,12 +299,12 @@ func validarPublicacion(d models.DatosPublicacion) string {
 		return "El municipio es obligatorio."
 	}
 	if d.Tipo == "bien _fisico" && strings.TrimSpace(d.Barrio) == "" {
-		return "El barrio dece de ser obligatorio para un bien fsico"
+		return "El barrio es obligatorio para un bien físico."
 	}
 	return ""
 }
 
-// El bien fisico lleva municiio y barrio, el servicio solo municipio
+// El bien fisico lleva municipio y barrio, el servicio solo municipio
 // Y el bien digital no lleva ubicacion
 func armarPublicacion(p *models.Publicacion, d models.DatosPublicacion) {
 	p.Tipo = d.Tipo
