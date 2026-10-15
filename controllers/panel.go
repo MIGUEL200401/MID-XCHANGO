@@ -4,6 +4,7 @@ import (
 	"math"
 	"net/mail"
 	"strings"
+	"time"
 
 	beego "github.com/beego/beego/v2/server/web"
 	"golang.org/x/crypto/bcrypt"
@@ -27,6 +28,28 @@ func comparar(actual int, anterior int) models.Comparativa {
 	}
 
 	return models.Comparativa{Actual: actual, Anterior: anterior, Porcentaje: porcentaje}
+}
+
+// GET /api/v1/admin/admins
+func (c *PanelController) Admins() {
+	_, ok := exigirAdmin(&c.Controller, false)
+	if !ok {
+		return
+	}
+
+	var admins []models.AdminUsuario
+	err := services.NewCrudService().Listar("admins", &admins)
+	if err != nil {
+		errorCrud(&c.Controller, err)
+		return
+	}
+
+	// nunca se manda la contraseña
+	for i := range admins {
+		admins[i].Password = ""
+	}
+
+	responder(&c.Controller, 200, admins)
 }
 
 // crea un nuevo administrador o moderador
@@ -360,8 +383,8 @@ func (c *PanelController) Metricas() {
 		}
 	}
 
-	responder(&c.Controller, 200, metricas)
-}
+	ahoraMismo := time.Now()
+	esteMes := time.Date(ahoraMismo.Year(), ahoraMismo.Month(), 1, 0, 0, 0, 0, time.UTC)
 
 	// ---------- se compara el mes anterior  ----------
 	mesAnterior := esteMes.AddDate(0, -1, 0)
@@ -469,9 +492,6 @@ func (c *PanelController) Metricas() {
 	// ---------- por mes (los ultimos 8) ----------
 	nombresMes := []string{"Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"}
 
-	ahoraMismo := time.Now()
-	esteMes := time.Date(ahoraMismo.Year(), ahoraMismo.Month(), 1, 0, 0, 0, 0, time.UTC)
-
 	metricas.ActividadMensual = []models.Punto{}
 	metricas.IntercambiosPorMes = []models.Punto{}
 
@@ -508,4 +528,13 @@ func (c *PanelController) Metricas() {
 		metricas.IntercambiosPorMes = append(metricas.IntercambiosPorMes, models.Punto{Label: nombre, Valor: cerrados})
 	}
 
-	
+	responder(&c.Controller, 200, metricas)
+}
+
+func enRango(texto string, desde time.Time, hasta time.Time) bool {
+	fecha := leerFecha(texto)
+	if fecha.IsZero() {
+		return false
+	}
+	return !fecha.Before(desde) && fecha.Before(hasta)
+}
