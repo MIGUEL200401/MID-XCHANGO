@@ -227,6 +227,7 @@ func (c *AuthController) Registro() {
 
 	correo := strings.ToLower(strings.TrimSpace(solicitud.Email))
 	nombre := strings.TrimSpace(solicitud.Nombre)
+	apellido := strings.TrimSpace(solicitud.Apellido)
 
 	if correo != claims.Correo {
 		responderError(&c.Controller, 403, "El correo no es el que verificaste.")
@@ -235,6 +236,11 @@ func (c *AuthController) Registro() {
 
 	if nombre == "" {
 		responderError(&c.Controller, 400, "El nombre es obligatorio.")
+		return
+	}
+
+	if apellido == "" {
+		responderError(&c.Controller, 400, "El apellido es obligatorio.")
 		return
 	}
 
@@ -261,6 +267,7 @@ func (c *AuthController) Registro() {
 
 	nuevo := models.Usuario{
 		Nombre:         nombre,
+		Apellido:       apellido,
 		Email:          correo,
 		Telefono:       soloNumeros(solicitud.Telefono),
 		Estado:         "activo",
@@ -359,6 +366,9 @@ func (c *AuthController) ActualizarPerfil() {
 	// solo se cambia lo que venga con algo escrito
 	if strings.TrimSpace(cambios.Nombre) != "" {
 		usuario.Nombre = strings.TrimSpace(cambios.Nombre)
+	}
+	if strings.TrimSpace(cambios.Apellido) != "" {
+		usuario.Apellido = strings.TrimSpace(cambios.Apellido)
 	}
 	if strings.TrimSpace(cambios.Telefono) != "" {
 		usuario.Telefono = soloNumeros(cambios.Telefono)

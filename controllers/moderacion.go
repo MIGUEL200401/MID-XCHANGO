@@ -91,6 +91,9 @@ func (c *ModeracionController) EditarUsuario() {
 	if strings.TrimSpace(cambios.Nombre) != "" {
 		usuario.Nombre = strings.TrimSpace(cambios.Nombre)
 	}
+	if strings.TrimSpace(cambios.Apellido) != "" {
+		usuario.Apellido = strings.TrimSpace(cambios.Apellido)
+	}
 	if cambios.Telefono != "" {
 		usuario.Telefono = soloNumeros(cambios.Telefono)
 	}

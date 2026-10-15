@@ -298,7 +298,7 @@ func validarPublicacion(d models.DatosPublicacion) string {
 	if d.Tipo != "bien_digital" && strings.TrimSpace(d.Municipio) == "" {
 		return "El municipio es obligatorio."
 	}
-	if d.Tipo == "bien _fisico" && strings.TrimSpace(d.Barrio) == "" {
+	if d.Tipo == "bien_fisico" && strings.TrimSpace(d.Barrio) == "" {
 		return "El barrio es obligatorio para un bien físico."
 	}
 	return ""
