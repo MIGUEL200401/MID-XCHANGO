@@ -22,11 +22,15 @@ type CodigoPin struct {
 }
 
 type SolicitudRegistro struct {
-	Nombre    string `json:"nombre"`
-	Apellido  string `json:"apellido"`
-	Email     string `json:"email"`
-	Telefono  string `json:"telefono"`
-	Ubicacion string `json:"ubicacion"`
+	Nombre          string `json:"nombre"`
+	Apellido        string `json:"apellido"`
+	FechaNacimiento string `json:"fechaNacimiento"`
+	Email           string `json:"email"`
+	Telefono        string `json:"telefono"`
+	Ubicacion       string `json:"ubicacion"`
+	Direccion       string `json:"direccion"`
+	Barrio          string `json:"barrio"`
+	Avatar          string `json:"avatar"`
 }
 
 type LoginAdmin struct {

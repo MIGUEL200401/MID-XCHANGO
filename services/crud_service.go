@@ -13,6 +13,10 @@ import (
 
 var ErrNoEncontrado = errors.New("no encontrado")
 
+// el CRUD rechazo un dato (codigo 400) o dijo que ya existe (codigo 409)
+var ErrDatoInvalido = errors.New("dato invalido")
+var ErrYaExiste = errors.New("ya existe")
+
 // habla con el CRUD, que es el que guarda en la base de datos
 type CrudService struct {
 	URL     string
@@ -71,6 +75,14 @@ func (s *CrudService) pedir(metodo string, ruta string, dato interface{}, destin
 
 	if respuesta.StatusCode == http.StatusNotFound {
 		return ErrNoEncontrado
+	}
+
+	if respuesta.StatusCode == http.StatusBadRequest {
+		return ErrDatoInvalido
+	}
+
+	if respuesta.StatusCode == http.StatusConflict {
+		return ErrYaExiste
 	}
 
 	if respuesta.StatusCode < 200 || respuesta.StatusCode > 299 {
