@@ -3,6 +3,7 @@ package models
 type Usuario struct {
 	Id                  string  `json:"id,omitempty"`
 	Nombre              string  `json:"nombre"`
+	Apellido            string  `json:"apellido"`
 	Email               string  `json:"email"`
 	Telefono            string  `json:"telefono"`
 	Estado              string  `json:"estado"`
@@ -17,4 +18,14 @@ type Usuario struct {
 	Publicaciones       int     `json:"publicaciones"`
 	Intercambios        int     `json:"intercambios"`
 	Reportes            int     `json:"reportes"`
+}
+
+// lo que se puede cambiar desde el perfil
+type CambiosPerfil struct {
+	Nombre      string `json:"nombre"`
+	Apellido    string `json:"apellido"`
+	Telefono    string `json:"telefono"`
+	Ubicacion   string `json:"ubicacion"`
+	Descripcion string `json:"descripcion"`
+	Avatar      string `json:"avatar"`
 }

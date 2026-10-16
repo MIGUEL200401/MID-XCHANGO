@@ -16,7 +16,7 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func GenerarTvalidoen(id string, correo string, rol string) (string, error) {
+func GenerarToken(id string, correo string, rol string) (string, error) {
 	secreto := beego.AppConfig.DefaultString("jwtsecret", "")
 
 	claims := Claims{
@@ -28,24 +28,24 @@ func GenerarTvalidoen(id string, correo string, rol string) (string, error) {
 		},
 	}
 
-	tvalidoen := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return tvalidoen.SignedString([]byte(secreto))
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(secreto))
 }
 
-func ValidarTvalidoen(texto string) (*Claims, error) {
+func ValidarToken(texto string) (*Claims, error) {
 	secreto := beego.AppConfig.DefaultString("jwtsecret", "")
 
-	tvalidoen, err := jwt.ParseWithClaims(texto, &Claims{}, func(t *jwt.Tvalidoen) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(texto, &Claims{}, func(t *jwt.Token) (interface{}, error) {
 		return []byte(secreto), nil
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	sesion, valido := tvalidoen.Claims.(*Claims)
-	if !valido || !tvalidoen.Valid {
-		return nil, fmt.Errorf("tvalidoen invalido")
+	sesion, valido := token.Claims.(*Claims)
+	if !valido || !token.Valid {
+		return nil, fmt.Errorf("token invalido")
 	}
 
-	return claims, nil
+	return sesion, nil
 }

@@ -1,53 +1,54 @@
 package models
 
-type AdminUsuario struct{
-	Id string `json:"id,omitempty"`
-	Nombre string `json:"nombre"`
-	Email string `json:"email"`
-	Password string `json:"password,omitempty"`
-	Rol string `json:"rol"`
-	Estado string `json:"estado"`
-	Avatar string `json:"avatar"`
+type AdminUsuario struct {
+	Id           string `json:"id,omitempty"`
+	Nombre       string `json:"nombre"`
+	Email        string `json:"email"`
+	Password     string `json:"password,omitempty"`
+	Rol          string `json:"rol"`
+	Estado       string `json:"estado"`
+	Avatar       string `json:"avatar"`
 	UltimoAcceso string `json:"ultimoAcceso"`
 }
 
-type Alerta struct{
-	Id string `json:"id,omitempty"`
-	Tipo string `json:"tipo"`
-	Titulo string `json:"titulo"`
-	Mensaje string `json:"mensaje"`
-	Fecha string `json:"fecha"`
-	Leida string `json:"leida"`
+type Alerta struct {
+	Id        string `json:"id,omitempty"`
+	Tipo      string `json:"tipo"`
+	Titulo    string `json:"titulo"`
+	Mensaje   string `json:"mensaje"`
+	Fecha     string `json:"fecha"`
+	Leida     bool   `json:"leida"`
 	Prioridad string `json:"prioridad"`
 }
 
 type AccionAdmin struct {
-	Id string `json:"id,omitempty"`
-	UsuarioId string `json:"usuarioId"`
-	AdminId string `json:"adminId"`
-	Accion string `json:"accion"`
+	Id          string `json:"id,omitempty"`
+	UsuarioId   string `json:"usuarioId"`
+	AdminId     string `json:"adminId"`
+	Accion      string `json:"accion"`
 	Descripcion string `json:"descripcion"`
-	Fecha string `json:"fecha"` 
+	Fecha       string `json:"fecha"`
 }
 
+// la metrica del dashboard
 type Punto struct {
 	Label string `json:"label"`
 	Valor int    `json:"valor"`
 }
 
 type Comparativa struct {
-	Actual int `json:"actual"`
-	Anterior int `json:"anterior"`
+	Actual     int     `json:"actual"`
+	Anterior   int     `json:"anterior"`
 	Porcentaje float64 `json:"porcentaje"`
 }
 
 type Resumen struct {
-	Usuarios int `json:"usuarios"`
-	UsuariosActivos int `json:"usuariosActivos"`
-	Publicaciones int `json:"publicaciones"`
-	Intercambios int `json:"intercambios"`
+	Usuarios                int `json:"usuarios"`
+	UsuariosActivos         int `json:"usuariosActivos"`
+	Publicaciones           int `json:"publicaciones"`
+	Intercambios            int `json:"intercambios"`
 	PublicacionesReportadas int `json:"publicacionesReportadas"`
-	UsuariosSuspendidos int `json:"usuariosSuspendidos"`
+	UsuariosSuspendidos     int `json:"usuariosSuspendidos"`
 }
 
 type Metricas struct {
