@@ -26,6 +26,9 @@ var candadoPines sync.RWMutex
 
 const maximoIntentos = 5
 
+// la foto de perfil llega como texto (base64), este es el maximo de caracteres
+const maximoAvatar = 300000
+
 type AuthController struct {
 	beego.Controller
 }
@@ -244,6 +247,25 @@ func (c *AuthController) Registro() {
 		return
 	}
 
+	mensaje := validarEdad(solicitud.FechaNacimiento)
+	if mensaje != "" {
+		responderError(&c.Controller, 400, mensaje)
+		return
+	}
+
+	direccion := strings.TrimSpace(solicitud.Direccion)
+	barrio := strings.TrimSpace(solicitud.Barrio)
+
+	if direccion == "" {
+		responderError(&c.Controller, 400, "La dirección es obligatoria.")
+		return
+	}
+
+	if barrio == "" {
+		responderError(&c.Controller, 400, "El barrio es obligatorio.")
+		return
+	}
+
 	crud := services.NewCrudService()
 
 	var usuarios []models.Usuario
@@ -265,17 +287,34 @@ func (c *AuthController) Registro() {
 		ubicacion = "Yopal"
 	}
 
+	// si no mandan foto se le pone una al azar
+	avatar := avatarAlAzar()
+	if solicitud.Avatar != "" {
+		if !strings.HasPrefix(solicitud.Avatar, "data:image/") {
+			responderError(&c.Controller, 400, "La foto de perfil no es válida.")
+			return
+		}
+		if len(solicitud.Avatar) > maximoAvatar {
+			responderError(&c.Controller, 400, "La foto de perfil es muy pesada.")
+			return
+		}
+		avatar = solicitud.Avatar
+	}
+
 	nuevo := models.Usuario{
-		Nombre:         nombre,
-		Apellido:       apellido,
-		Email:          correo,
-		Telefono:       soloNumeros(solicitud.Telefono),
-		Estado:         "activo",
-		FechaRegistro:  hoy(),
-		Ubicacion:      ubicacion,
-		NivelActividad: "bajo",
-		Avatar:         avatarAlAzar(),
-		Verificacion:   "no_verificado",
+		Nombre:          nombre,
+		Apellido:        apellido,
+		FechaNacimiento: strings.TrimSpace(solicitud.FechaNacimiento),
+		Direccion:       direccion,
+		Barrio:          barrio,
+		Email:           correo,
+		Telefono:        soloNumeros(solicitud.Telefono),
+		Estado:          "activo",
+		FechaRegistro:   hoy(),
+		Ubicacion:       ubicacion,
+		NivelActividad:  "bajo",
+		Avatar:          avatar,
+		Verificacion:    "no_verificado",
 	}
 
 	var creado models.Usuario
@@ -295,6 +334,41 @@ func (c *AuthController) Registro() {
 		"token":   token,
 		"usuario": creado,
 	})
+}
+
+// revisa la fecha de nacimiento (aaaa-mm-dd) y que la persona tenga 18 años o mas
+// devuelve el mensaje de error, o "" si esta bien
+func validarEdad(fecha string) string {
+	fecha = strings.TrimSpace(fecha)
+
+	if fecha == "" {
+		return "La fecha de nacimiento es obligatoria."
+	}
+
+	nacimiento, err := time.Parse("2006-01-02", fecha)
+	if err != nil {
+		return "La fecha de nacimiento debe tener el formato aaaa-mm-dd."
+	}
+
+	ahoraMismo := time.Now()
+
+	if nacimiento.After(ahoraMismo) {
+		return "La fecha de nacimiento no puede ser futura."
+	}
+
+	edad := ahoraMismo.Year() - nacimiento.Year()
+
+	// si todavia no ha cumplido años este año, se resta uno
+	if ahoraMismo.Month() < nacimiento.Month() ||
+		(ahoraMismo.Month() == nacimiento.Month() && ahoraMismo.Day() < nacimiento.Day()) {
+		edad--
+	}
+
+	if edad < 18 {
+		return "Debes ser mayor de 18 años para registrarte."
+	}
+
+	return ""
 }
 
 // deja solo los digitos de un telefono
@@ -376,10 +450,20 @@ func (c *AuthController) ActualizarPerfil() {
 	if strings.TrimSpace(cambios.Ubicacion) != "" {
 		usuario.Ubicacion = strings.TrimSpace(cambios.Ubicacion)
 	}
+	if strings.TrimSpace(cambios.Direccion) != "" {
+		usuario.Direccion = strings.TrimSpace(cambios.Direccion)
+	}
+	if strings.TrimSpace(cambios.Barrio) != "" {
+		usuario.Barrio = strings.TrimSpace(cambios.Barrio)
+	}
 	if cambios.Descripcion != "" {
 		usuario.Descripcion = cambios.Descripcion
 	}
 	if cambios.Avatar != "" {
+		if len(cambios.Avatar) > maximoAvatar {
+			responderError(&c.Controller, 400, "La foto de perfil es muy pesada.")
+			return
+		}
 		usuario.Avatar = cambios.Avatar
 	}
 
