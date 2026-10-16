@@ -122,7 +122,7 @@ func (c *TruequesController) Solicitar() {
 		publicacion.UsuarioId,
 		"solicitud",
 		"Nueva solicitud de trueque",
-		solicitante.Nombre+" quiere truequear por tu publicación \""+publicacion.Titulo+"\".",
+		solicitante.Nombre+" "+solicitante.Apellido+" quiere truequear por tu publicación \""+publicacion.Titulo+"\".",
 		creado.Id,
 	)
 	if err != nil {

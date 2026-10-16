@@ -18,3 +18,24 @@ type PublicacionEliminada struct {
 	Motivo string `json:"motivo"`
 	Fecha string `json:"fecha"`
 }
+
+type Documento struct {
+	Id string `json:"id,omitempty"`
+	UsuarioId string `json:"usuarioId"`
+	TipoDocumento string `json:"tipoDocumento"`
+	Numero string `json:"numero"`
+	Archivo string `json:"archivo"`
+	FechaSubida string `json:"fechaSubida"`
+	Estado string `json:"estado"`
+	Observacion string `json:"observacion"`
+	RevisadoPor *string `json:"revisadoPor"`
+}
+
+type SolicitudEliminar struct {
+	Motivo string `json:"motivo"`
+}
+
+type RevisionDocumento struct {
+	Estado string `json:"estado"`
+	Observacion string `json:"observacion"`
+}

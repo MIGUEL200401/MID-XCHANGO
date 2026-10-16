@@ -9,6 +9,10 @@ import (
 	"xchango_mid/services"
 )
 
+// maximo de fotos por publicacion y de caracteres por foto (el texto en base64)
+const maximoImagenes = 5
+const maximoTextoImagen = 2000000
+
 type PublicacionesController struct {
 	beego.Controller
 }
@@ -112,9 +116,15 @@ func (c *PublicacionesController) Crear() {
 		return
 	}
 
+	// la publicacion se puede crear activa o pausada
+	estado := "activa"
+	if datos.Estado == "pausada" {
+		estado = "pausada"
+	}
+
 	nueva := models.Publicacion{
 		UsuarioId:         sesion.ID,
-		Estado:            "activa",
+		Estado:            estado,
 		Vistas:            0,
 		FechaCreacion:     hoy(),
 		FechaModificacion: hoy(),
@@ -334,7 +344,52 @@ func validarPublicacion(d models.DatosPublicacion) string {
 	if d.Tipo == "bien_fisico" && strings.TrimSpace(d.Barrio) == "" {
 		return "El barrio es obligatorio para un bien físico."
 	}
+	if strings.TrimSpace(d.Buscas) == "" {
+		return "Escribe qué buscas a cambio."
+	}
+
+	// los largos maximos son los mismos de la base de datos
+	if largo(d.Titulo) > 120 {
+		return "El título puede tener máximo 120 letras."
+	}
+	if largo(d.Descripcion) > 500 {
+		return "La descripción puede tener máximo 500 letras."
+	}
+	if largo(d.Ofreces) > 200 {
+		return "Lo que ofreces puede tener máximo 200 letras."
+	}
+	if largo(d.Buscas) > 200 {
+		return "Lo que buscas puede tener máximo 200 letras."
+	}
+	if largo(d.Barrio) > 80 {
+		return "El barrio puede tener máximo 80 letras."
+	}
+	if largo(d.CantidadDisponible) > 40 {
+		return "La cantidad puede tener máximo 40 letras."
+	}
+	if largo(d.Disponibilidad) > 120 {
+		return "La disponibilidad puede tener máximo 120 letras."
+	}
+
+	if d.Estado != "" && d.Estado != "activa" && d.Estado != "pausada" {
+		return "El estado debe ser activa o pausada."
+	}
+
+	// las fotos llegan como texto, se limita cuantas y que tan pesadas
+	if len(d.Imagenes) > maximoImagenes {
+		return "Puedes subir máximo 5 fotos."
+	}
+	for _, imagen := range d.Imagenes {
+		if len(imagen) > maximoTextoImagen {
+			return "Cada foto debe pesar menos de 1,5 MB."
+		}
+	}
 	return ""
+}
+
+// cuenta las letras (no los bytes), para que las tildes cuenten como una
+func largo(texto string) int {
+	return len([]rune(strings.TrimSpace(texto)))
 }
 
 // El bien fisico lleva municipio y barrio, el servicio solo municipio
