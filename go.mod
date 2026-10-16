@@ -1,6 +1,6 @@
 module xchango_mid
 
-go 1.24.2
+go 1.26.2
 
 require (
 	github.com/beego/beego/v2 v2.3.10
