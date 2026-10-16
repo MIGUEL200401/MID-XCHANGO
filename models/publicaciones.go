@@ -32,6 +32,7 @@ type DatosPublicacion struct {
 	CantidadDisponible string `json:"cantidadDisponible"`
 	Disponibilidad string `json:"disponibilidad"`
 	Imagenes []string `json:"imagenes"`
+	Estado string `json:"estado"`
 }
 
 type Categoria struct {
