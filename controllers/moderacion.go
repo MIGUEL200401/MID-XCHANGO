@@ -100,6 +100,12 @@ func (c *ModeracionController) EditarUsuario() {
 	if cambios.Ubicacion != "" {
 		usuario.Ubicacion = cambios.Ubicacion
 	}
+	if strings.TrimSpace(cambios.Direccion) != "" {
+		usuario.Direccion = strings.TrimSpace(cambios.Direccion)
+	}
+	if strings.TrimSpace(cambios.Barrio) != "" {
+		usuario.Barrio = strings.TrimSpace(cambios.Barrio)
+	}
 	if cambios.Descripcion != "" {
 		usuario.Descripcion = cambios.Descripcion
 	}
