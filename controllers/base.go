@@ -36,6 +36,14 @@ func errorCrud(c *beego.Controller, err error) {
 		responderError(c, 404, "No se encontró lo que buscas.")
 		return
 	}
+	if err == services.ErrDatoInvalido {
+		responderError(c, 400, "Algún dato no cumple las reglas de la base de datos. Revisa los campos.")
+		return
+	}
+	if err == services.ErrYaExiste {
+		responderError(c, 409, "Eso ya existe.")
+		return
+	}
 	responderError(c, 502, "El servicio de datos no respondió: "+err.Error())
 }
 
