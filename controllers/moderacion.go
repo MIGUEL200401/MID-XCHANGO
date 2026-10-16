@@ -42,7 +42,7 @@ func (c *ModeracionController) CambiarEstadoUsuario() {
 	}
 
 	if cambio.Estado != "activo" && cambio.Estado != "suspendido" && cambio.Estado != "advertido" {
-		responderError(&c.Controller, 400, "El estado debe de ser activo, suspendido o advertido.")
+		responderError(&c.Controller, 400, "El estado debe ser activo, suspendido o advertido.")
 		return
 	}
 
@@ -91,11 +91,20 @@ func (c *ModeracionController) EditarUsuario() {
 	if strings.TrimSpace(cambios.Nombre) != "" {
 		usuario.Nombre = strings.TrimSpace(cambios.Nombre)
 	}
+	if strings.TrimSpace(cambios.Apellido) != "" {
+		usuario.Apellido = strings.TrimSpace(cambios.Apellido)
+	}
 	if cambios.Telefono != "" {
 		usuario.Telefono = soloNumeros(cambios.Telefono)
 	}
 	if cambios.Ubicacion != "" {
 		usuario.Ubicacion = cambios.Ubicacion
+	}
+	if strings.TrimSpace(cambios.Direccion) != "" {
+		usuario.Direccion = strings.TrimSpace(cambios.Direccion)
+	}
+	if strings.TrimSpace(cambios.Barrio) != "" {
+		usuario.Barrio = strings.TrimSpace(cambios.Barrio)
 	}
 	if cambios.Descripcion != "" {
 		usuario.Descripcion = cambios.Descripcion
@@ -103,7 +112,7 @@ func (c *ModeracionController) EditarUsuario() {
 	if cambios.Verificacion == "verificado" || cambios.Verificacion == "no_verificado" {
 		usuario.Verificacion = cambios.Verificacion
 	}
-	if cambios.Estado == "activo" || cambios.Estados == "suspendido" || cambios.Estado == "advertido" {
+	if cambios.Estado == "activo" || cambios.Estado == "suspendido" || cambios.Estado == "advertido" {
 		usuario.Estado = cambios.Estado
 	}
 
@@ -161,7 +170,7 @@ func (c *ModeracionController) ActualizarReporte() {
 	}
 
 	if cambio.Estado != "pendiente" && cambio.Estado != "aprobada" && cambio.Estado != "eliminada" {
-		responderError(&c.Controller, 400, "El estado debe de ser pendiente, aprobadao eliminada.")
+		responderError(&c.Controller, 400, "El estado debe ser pendiente, aprobada o eliminada.")
 		return
 	}
 
@@ -181,7 +190,7 @@ func (c *ModeracionController) ActualizarReporte() {
 		errorCrud(&c.Controller, err)
 		return
 	}
-	responderVacio()
+	responderVacio(&c.Controller)
 }
 
 // POST/api/v1/admin/reportes/:id/eliminar
@@ -213,7 +222,7 @@ func (c *ModeracionController) EliminarPublicacion() {
 	}
 
 	var publicacion models.Publicacion
-	err = crud.Obtener("publicacion", reporte.PublicacionId, &publicacion)
+	err = crud.Obtener("publicaciones", reporte.PublicacionId, &publicacion)
 	if err != nil {
 		errorCrud(&c.Controller, err)
 		return
@@ -235,7 +244,7 @@ func (c *ModeracionController) EliminarPublicacion() {
 	}
 
 	registro := models.PublicacionEliminada{
-		publicacionId: publicacion.Id,
+		PublicacionId: publicacion.Id,
 		UsuarioId:     publicacion.UsuarioId,
 		AdminId:       sesion.ID,
 		Motivo:        motivo,
@@ -258,7 +267,7 @@ func (c *ModeracionController) Eliminadas() {
 	}
 
 	var eliminadas []models.PublicacionEliminada
-	err := services.NewCrudService().Listar("publicaciones-eliminadas", eliminadas)
+	err := services.NewCrudService().Listar("publicaciones-eliminadas", &eliminadas)
 	if err != nil {
 		errorCrud(&c.Controller, err)
 		return
