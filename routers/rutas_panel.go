@@ -10,6 +10,7 @@ func init() {
 	// panel de administracion
 	beego.Router("/api/v1/admin/admins", &controllers.PanelController{}, "get:Admins;post:CrearAdmin")
 	beego.Router("/api/v1/admin/admins/:id", &controllers.PanelController{}, "delete:EliminarAdmin")
+	beego.Router("/api/v1/admin/admins/:id/estado", &controllers.PanelController{}, "patch:EstadoAdmin")
 	beego.Router("/api/v1/admin/historial", &controllers.PanelController{}, "get:Historial;post:RegistrarAccion")
 	beego.Router("/api/v1/admin/alertas", &controllers.PanelController{}, "get:Alertas")
 	beego.Router("/api/v1/admin/alertas/leidas", &controllers.PanelController{}, "patch:TodasLeidas")

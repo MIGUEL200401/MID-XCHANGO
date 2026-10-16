@@ -20,3 +20,16 @@ type CodigoPin struct {
 	Intentos int
 	Activo   bool
 }
+
+type SolicitudRegistro struct {
+	Nombre    string `json:"nombre"`
+	Apellido  string `json:"apellido"`
+	Email     string `json:"email"`
+	Telefono  string `json:"telefono"`
+	Ubicacion string `json:"ubicacion"`
+}
+
+type LoginAdmin struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
