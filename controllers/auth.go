@@ -214,6 +214,10 @@ func (c *AuthController) VerificarPin() {
 // POST /api/v1/auth/registro
 func (c *AuthController) Registro() {
 	claims, ok := leerToken(&c.Controller)
+	if ok && claims.Rol == "usuario" {
+		responderError(&c.Controller, 409, "Ese correo ya está registrado. Inicia sesión.")
+		return
+	}
 	if !ok || claims.Rol != "registro" {
 		responderError(&c.Controller, 401, "Primero verifica tu correo con el PIN.")
 		return
@@ -263,6 +267,11 @@ func (c *AuthController) Registro() {
 	ubicacion := strings.TrimSpace(solicitud.Ubicacion)
 	if ubicacion == "" {
 		ubicacion = "Yopal"
+	}
+	ubicacion = buscarMunicipio(ubicacion)
+	if ubicacion == "" {
+		responderError(&c.Controller, 400, mensajeMunicipio)
+		return
 	}
 
 	nuevo := models.Usuario{
@@ -374,7 +383,12 @@ func (c *AuthController) ActualizarPerfil() {
 		usuario.Telefono = soloNumeros(cambios.Telefono)
 	}
 	if strings.TrimSpace(cambios.Ubicacion) != "" {
-		usuario.Ubicacion = strings.TrimSpace(cambios.Ubicacion)
+		municipio := buscarMunicipio(cambios.Ubicacion)
+		if municipio == "" {
+			responderError(&c.Controller, 400, mensajeMunicipio)
+			return
+		}
+		usuario.Ubicacion = municipio
 	}
 	if cambios.Descripcion != "" {
 		usuario.Descripcion = cambios.Descripcion
@@ -544,4 +558,58 @@ func mandarPin(correo string, pin string, nombre string) error {
 
 	_, err = servicioGmail.EnviarCorreo(correo, "Tu PIN de XchanGo", cuerpo, logo)
 	return err
+}
+
+// DELETE /api/v1/usuarios/perfil
+// El usuario elimina su propia cuenta. La cuenta no se borra, se marca como eliminada
+func (c *AuthController) EliminarCuenta() {
+	sesion, valido := exigirUsuario(&c.Controller)
+	if !valido {
+		return
+	}
+
+	crud := services.NewCrudService()
+
+	var trueques []models.Trueque
+	err := crud.Listar("trueques", &trueques)
+	if err != nil {
+		errorCrud(&c.Controller, err)
+		return
+	}
+
+	// no se puede eliminar la cuenta con trueques abiertos
+	for _, t := range trueques {
+		abierto := t.Estado == "pendiente" || t.Estado == "aceptado"
+		if abierto && (t.SolicitanteId == sesion.ID || t.PropietarioId == sesion.ID) {
+			responderError(&c.Controller, 400, "Tienes trueques abiertos. Ciérralos antes de eliminar tu cuenta.")
+			return
+		}
+	}
+
+	var publicaciones []models.Publicacion
+	err = crud.Listar("publicaciones", &publicaciones)
+	if err != nil {
+		errorCrud(&c.Controller, err)
+		return
+	}
+
+	// las publicaciones de la cuenta dejan de mostrarse
+	for _, p := range publicaciones {
+		if p.UsuarioId == sesion.ID && p.Estado != "eliminada" {
+			p.Estado = "eliminada"
+			err = crud.Actualizar("publicaciones", p.Id, p, nil)
+			if err != nil {
+				errorCrud(&c.Controller, err)
+				return
+			}
+		}
+	}
+
+	err = crud.Borrar("usuarios", sesion.ID)
+	if err != nil {
+		errorCrud(&c.Controller, err)
+		return
+	}
+
+	responderVacio(&c.Controller)
 }

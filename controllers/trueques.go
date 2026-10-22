@@ -443,13 +443,17 @@ func buscarTrueque(c *beego.Controller, id string) (models.Trueque, bool) {
 
 func crearNotificacion(usuarioId string, tipo string, titulo string, mensaje string, referenciaId string) error {
 	nueva := models.Notificacion{
-		UsuarioId:    usuarioId,
-		Tipo:         tipo,
-		Titulo:       titulo,
-		Mensaje:      mensaje,
-		ReferenciaId: &referenciaId,
-		Leida:        false,
-		Fecha:        ahora(),
+		UsuarioId: usuarioId,
+		Tipo:      tipo,
+		Titulo:    titulo,
+		Mensaje:   mensaje,
+		Leida:     false,
+		Fecha:     ahora(),
+	}
+
+	// las notificaciones de documentos no tienen trueque
+	if referenciaId != "" {
+		nueva.ReferenciaId = &referenciaId
 	}
 
 	return services.NewCrudService().Crear("notificaciones", nueva, nil)

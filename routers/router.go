@@ -23,5 +23,5 @@ func init() {
 	beego.Router("/api/v1/auth/perfil", &controllers.AuthController{}, "get:Perfil")
 	beego.Router("/api/v1/auth/admin/login", &controllers.AuthController{}, "post:LoginAdmin")
 	beego.Router("/api/v1/usuarios", &controllers.AuthController{}, "get:ListarUsuarios")
-	beego.Router("/api/v1/usuarios/perfil", &controllers.AuthController{}, "put:ActualizarPerfil")
+	beego.Router("/api/v1/usuarios/perfil", &controllers.AuthController{}, "put:ActualizarPerfil;delete:EliminarCuenta")
 }

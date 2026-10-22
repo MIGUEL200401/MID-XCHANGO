@@ -11,6 +11,7 @@ func init() {
 	beego.Router("/api/v1/categorias", &controllers.PublicacionesController{}, "get:Categorias")
 	beego.Router("/api/v1/avisos-ubicacion", &controllers.PublicacionesController{}, "get:Avisos")
 	beego.Router("/api/v1/publicaciones", &controllers.PublicacionesController{}, "get:Listar;post:Crear")
+	beego.Router("/api/v1/publicaciones/mias", &controllers.PublicacionesController{}, "get:Mias")
 	beego.Router("/api/v1/publicaciones/:id", &controllers.PublicacionesController{}, "put:Actualizar;delete:Eliminar")
 	beego.Router("/api/v1/publicaciones/:id/estado", &controllers.PublicacionesController{}, "patch:CambiarEstado")
 	beego.Router("/api/v1/favoritos", &controllers.PublicacionesController{}, "get:Favoritos")
