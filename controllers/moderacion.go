@@ -98,7 +98,12 @@ func (c *ModeracionController) EditarUsuario() {
 		usuario.Telefono = soloNumeros(cambios.Telefono)
 	}
 	if cambios.Ubicacion != "" {
-		usuario.Ubicacion = cambios.Ubicacion
+		municipio := buscarMunicipio(cambios.Ubicacion)
+		if municipio == "" {
+			responderError(&c.Controller, 400, mensajeMunicipio)
+			return
+		}
+		usuario.Ubicacion = municipio
 	}
 	if strings.TrimSpace(cambios.Direccion) != "" {
 		usuario.Direccion = strings.TrimSpace(cambios.Direccion)
@@ -345,6 +350,23 @@ func (c *ModeracionController) RevisarDocumento() {
 			errorCrud(&c.Controller, err)
 			return
 		}
+	}
+
+	// se le avisa al usuario como quedó su documento
+	titulo := "Tu documento fue aprobado"
+	mensaje := "Tu cuenta ya está verificada."
+	if revision.Estado == "rechazado" {
+		titulo = "Tu documento fue rechazado"
+		mensaje = "Puedes subir el documento otra vez."
+		if strings.TrimSpace(revision.Observacion) != "" {
+			mensaje = "Motivo: " + strings.TrimSpace(revision.Observacion)
+		}
+	}
+
+	err = crearNotificacion(documento.UsuarioId, "documento", titulo, mensaje, "")
+	if err != nil {
+		errorCrud(&c.Controller, err)
+		return
 	}
 
 	responderVacio(&c.Controller)

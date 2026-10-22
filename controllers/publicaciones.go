@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"strings"
 
 	beego "github.com/beego/beego/v2/server/web"
@@ -91,6 +92,30 @@ func (c *PublicacionesController) Listar() {
 		visibles = append(visibles, p)
 	}
 	responder(&c.Controller, 200, visibles)
+}
+
+// GET/api/v1/publicaciones/mias (solo las publicaciones del usuario con sesion, activas y pausadas)
+func (c *PublicacionesController) Mias() {
+	sesion, valido := exigirUsuario(&c.Controller)
+	if !valido {
+		return
+	}
+
+	var todas []models.Publicacion
+
+	err := services.NewCrudService().Listar("publicaciones", &todas)
+	if err != nil {
+		errorCrud(&c.Controller, err)
+		return
+	}
+
+	mias := []models.Publicacion{}
+	for _, p := range todas {
+		if p.UsuarioId == sesion.ID && p.Estado != "eliminada" {
+			mias = append(mias, p)
+		}
+	}
+	responder(&c.Controller, 200, mias)
 }
 
 // POST/api/v1/publicaciones
@@ -315,6 +340,18 @@ func (c *PublicacionesController) AlternarFavorito() {
 		}
 	}
 
+	// la publicacion tiene que existir para poder guardarla en favoritos
+	var publicacion models.Publicacion
+	err = crud.Obtener("publicaciones", publicacionId, &publicacion)
+	if err != nil {
+		if errors.Is(err, services.ErrNoEncontrado) {
+			responderError(&c.Controller, 404, "Esa publicación no existe.")
+			return
+		}
+		errorCrud(&c.Controller, err)
+		return
+	}
+
 	nuevo := models.Favoritos{UsuarioId: sesion.ID, PublicacionId: publicacionId}
 
 	err = crud.Crear("favoritos", nuevo, nil)
@@ -340,6 +377,9 @@ func validarPublicacion(d models.DatosPublicacion) string {
 	}
 	if d.Tipo != "bien_digital" && strings.TrimSpace(d.Municipio) == "" {
 		return "El municipio es obligatorio."
+	}
+	if d.Tipo != "bien_digital" && buscarMunicipio(d.Municipio) == "" {
+		return mensajeMunicipio
 	}
 	if d.Tipo == "bien_fisico" && strings.TrimSpace(d.Barrio) == "" {
 		return "El barrio es obligatorio para un bien físico."
@@ -415,7 +455,7 @@ func armarPublicacion(p *models.Publicacion, d models.DatosPublicacion) {
 	p.Disponibilidad = ""
 
 	if d.Tipo == "bien_fisico" {
-		p.Municipio = d.Municipio
+		p.Municipio = buscarMunicipio(d.Municipio)
 		p.Barrio = d.Barrio
 		p.CantidadDisponible = d.CantidadDisponible
 		if p.CantidadDisponible == "" {
@@ -428,7 +468,7 @@ func armarPublicacion(p *models.Publicacion, d models.DatosPublicacion) {
 	}
 
 	if d.Tipo == "servicio" {
-		p.Municipio = d.Municipio
+		p.Municipio = buscarMunicipio(d.Municipio)
 		p.CantidadDisponible = d.CantidadDisponible
 		if p.CantidadDisponible == "" {
 			p.CantidadDisponible = "1 sesion"

@@ -39,3 +39,8 @@ type RevisionDocumento struct {
 	Estado      string `json:"estado"`
 	Observacion string `json:"observacion"`
 }
+
+type SolicitudReporte struct {
+	PublicacionId string `json:"publicacionId"`
+	Motivo        string `json:"motivo"`
+}
